@@ -5,7 +5,7 @@
   "license": "MIT",
   "description": "Nokia 3310 Space Impact browser reconstruction (work in progress)",
   "scripts": {
-    "test": "node --test",
+    "test": "node --test --require ./tests/support/locale.js",
     "serve": "python3 -m http.server 8080"
   }
 }

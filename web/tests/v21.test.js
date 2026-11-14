@@ -1,5 +1,7 @@
 'use strict';
 
+require('./support/locale.js');
+
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const Engine = require('../js/engine.js');
