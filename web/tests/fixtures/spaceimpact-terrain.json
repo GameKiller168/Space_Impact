@@ -1,0 +1,445 @@
+{
+  "source": "Nokia 3310 v6.39 PPM B, 0x2e6e98",
+  "entries": [
+    {
+      "level": 1,
+      "scroll": 0,
+      "crc32": "0ee93c94"
+    },
+    {
+      "level": 1,
+      "scroll": 1,
+      "crc32": "0ee93c94"
+    },
+    {
+      "level": 1,
+      "scroll": 31,
+      "crc32": "0ee93c94"
+    },
+    {
+      "level": 1,
+      "scroll": 32,
+      "crc32": "0ee93c94"
+    },
+    {
+      "level": 1,
+      "scroll": 33,
+      "crc32": "0ee93c94"
+    },
+    {
+      "level": 1,
+      "scroll": 84,
+      "crc32": "0ee93c94"
+    },
+    {
+      "level": 1,
+      "scroll": 255,
+      "crc32": "0ee93c94"
+    },
+    {
+      "level": 1,
+      "scroll": 480,
+      "crc32": "0ee93c94"
+    },
+    {
+      "level": 1,
+      "scroll": 511,
+      "crc32": "0ee93c94"
+    },
+    {
+      "level": 1,
+      "scroll": 512,
+      "crc32": "0ee93c94"
+    },
+    {
+      "level": 1,
+      "scroll": 513,
+      "crc32": "0ee93c94"
+    },
+    {
+      "level": 2,
+      "scroll": 0,
+      "crc32": "ef6933af"
+    },
+    {
+      "level": 2,
+      "scroll": 1,
+      "crc32": "b86e91a6"
+    },
+    {
+      "level": 2,
+      "scroll": 31,
+      "crc32": "c6f098b1"
+    },
+    {
+      "level": 2,
+      "scroll": 32,
+      "crc32": "474f1ab9"
+    },
+    {
+      "level": 2,
+      "scroll": 33,
+      "crc32": "7011e60f"
+    },
+    {
+      "level": 2,
+      "scroll": 84,
+      "crc32": "6788ef77"
+    },
+    {
+      "level": 2,
+      "scroll": 255,
+      "crc32": "34fa27d3"
+    },
+    {
+      "level": 2,
+      "scroll": 480,
+      "crc32": "be9c9c01"
+    },
+    {
+      "level": 2,
+      "scroll": 511,
+      "crc32": "807e1fd7"
+    },
+    {
+      "level": 2,
+      "scroll": 512,
+      "crc32": "ef6933af"
+    },
+    {
+      "level": 2,
+      "scroll": 513,
+      "crc32": "b86e91a6"
+    },
+    {
+      "level": 3,
+      "scroll": 0,
+      "crc32": "9dc97f1b"
+    },
+    {
+      "level": 3,
+      "scroll": 1,
+      "crc32": "b6136763"
+    },
+    {
+      "level": 3,
+      "scroll": 31,
+      "crc32": "df7bb946"
+    },
+    {
+      "level": 3,
+      "scroll": 32,
+      "crc32": "ff851ce4"
+    },
+    {
+      "level": 3,
+      "scroll": 33,
+      "crc32": "9b73c48d"
+    },
+    {
+      "level": 3,
+      "scroll": 84,
+      "crc32": "9b2133ea"
+    },
+    {
+      "level": 3,
+      "scroll": 255,
+      "crc32": "15b3cc27"
+    },
+    {
+      "level": 3,
+      "scroll": 480,
+      "crc32": "c130445d"
+    },
+    {
+      "level": 3,
+      "scroll": 511,
+      "crc32": "4e05991a"
+    },
+    {
+      "level": 3,
+      "scroll": 512,
+      "crc32": "9dc97f1b"
+    },
+    {
+      "level": 3,
+      "scroll": 513,
+      "crc32": "b6136763"
+    },
+    {
+      "level": 4,
+      "scroll": 0,
+      "crc32": "211625f8"
+    },
+    {
+      "level": 4,
+      "scroll": 1,
+      "crc32": "a0f8b15b"
+    },
+    {
+      "level": 4,
+      "scroll": 31,
+      "crc32": "03ee29f7"
+    },
+    {
+      "level": 4,
+      "scroll": 32,
+      "crc32": "46b91556"
+    },
+    {
+      "level": 4,
+      "scroll": 33,
+      "crc32": "91f19084"
+    },
+    {
+      "level": 4,
+      "scroll": 84,
+      "crc32": "e8d064a6"
+    },
+    {
+      "level": 4,
+      "scroll": 255,
+      "crc32": "4c09d9ec"
+    },
+    {
+      "level": 4,
+      "scroll": 480,
+      "crc32": "1e49decb"
+    },
+    {
+      "level": 4,
+      "scroll": 511,
+      "crc32": "71944b6c"
+    },
+    {
+      "level": 4,
+      "scroll": 512,
+      "crc32": "211625f8"
+    },
+    {
+      "level": 4,
+      "scroll": 513,
+      "crc32": "a0f8b15b"
+    },
+    {
+      "level": 5,
+      "scroll": 0,
+      "crc32": "c7a38040"
+    },
+    {
+      "level": 5,
+      "scroll": 1,
+      "crc32": "421391e7"
+    },
+    {
+      "level": 5,
+      "scroll": 31,
+      "crc32": "d62314df"
+    },
+    {
+      "level": 5,
+      "scroll": 32,
+      "crc32": "93ca52cc"
+    },
+    {
+      "level": 5,
+      "scroll": 33,
+      "crc32": "a649373e"
+    },
+    {
+      "level": 5,
+      "scroll": 84,
+      "crc32": "053156a6"
+    },
+    {
+      "level": 5,
+      "scroll": 255,
+      "crc32": "f57c8cb4"
+    },
+    {
+      "level": 5,
+      "scroll": 480,
+      "crc32": "fdb53ce8"
+    },
+    {
+      "level": 5,
+      "scroll": 511,
+      "crc32": "a874374a"
+    },
+    {
+      "level": 5,
+      "scroll": 512,
+      "crc32": "c7a38040"
+    },
+    {
+      "level": 5,
+      "scroll": 513,
+      "crc32": "421391e7"
+    },
+    {
+      "level": 6,
+      "scroll": 0,
+      "crc32": "cdc62687"
+    },
+    {
+      "level": 6,
+      "scroll": 1,
+      "crc32": "adf36562"
+    },
+    {
+      "level": 6,
+      "scroll": 31,
+      "crc32": "f1157071"
+    },
+    {
+      "level": 6,
+      "scroll": 32,
+      "crc32": "5ea65ee9"
+    },
+    {
+      "level": 6,
+      "scroll": 33,
+      "crc32": "076a4945"
+    },
+    {
+      "level": 6,
+      "scroll": 84,
+      "crc32": "b7509fad"
+    },
+    {
+      "level": 6,
+      "scroll": 255,
+      "crc32": "d1483fbe"
+    },
+    {
+      "level": 6,
+      "scroll": 480,
+      "crc32": "93ca52cc"
+    },
+    {
+      "level": 6,
+      "scroll": 511,
+      "crc32": "989283fc"
+    },
+    {
+      "level": 6,
+      "scroll": 512,
+      "crc32": "cdc62687"
+    },
+    {
+      "level": 6,
+      "scroll": 513,
+      "crc32": "adf36562"
+    },
+    {
+      "level": 7,
+      "scroll": 0,
+      "crc32": "503de5de"
+    },
+    {
+      "level": 7,
+      "scroll": 1,
+      "crc32": "259b260d"
+    },
+    {
+      "level": 7,
+      "scroll": 31,
+      "crc32": "61e64922"
+    },
+    {
+      "level": 7,
+      "scroll": 32,
+      "crc32": "6a992885"
+    },
+    {
+      "level": 7,
+      "scroll": 33,
+      "crc32": "d9180abc"
+    },
+    {
+      "level": 7,
+      "scroll": 84,
+      "crc32": "6fce7a86"
+    },
+    {
+      "level": 7,
+      "scroll": 255,
+      "crc32": "3de71b77"
+    },
+    {
+      "level": 7,
+      "scroll": 480,
+      "crc32": "62b9886f"
+    },
+    {
+      "level": 7,
+      "scroll": 511,
+      "crc32": "99f738e8"
+    },
+    {
+      "level": 7,
+      "scroll": 512,
+      "crc32": "503de5de"
+    },
+    {
+      "level": 7,
+      "scroll": 513,
+      "crc32": "259b260d"
+    },
+    {
+      "level": 8,
+      "scroll": 0,
+      "crc32": "0ef60b0d"
+    },
+    {
+      "level": 8,
+      "scroll": 1,
+      "crc32": "0a38b311"
+    },
+    {
+      "level": 8,
+      "scroll": 31,
+      "crc32": "648cac72"
+    },
+    {
+      "level": 8,
+      "scroll": 32,
+      "crc32": "c5ce791b"
+    },
+    {
+      "level": 8,
+      "scroll": 33,
+      "crc32": "fe273e32"
+    },
+    {
+      "level": 8,
+      "scroll": 84,
+      "crc32": "b0f38b74"
+    },
+    {
+      "level": 8,
+      "scroll": 255,
+      "crc32": "3e0d94d8"
+    },
+    {
+      "level": 8,
+      "scroll": 480,
+      "crc32": "5834cbc8"
+    },
+    {
+      "level": 8,
+      "scroll": 511,
+      "crc32": "3d4d36c2"
+    },
+    {
+      "level": 8,
+      "scroll": 512,
+      "crc32": "0ef60b0d"
+    },
+    {
+      "level": 8,
+      "scroll": 513,
+      "crc32": "0a38b311"
+    }
+  ]
+}

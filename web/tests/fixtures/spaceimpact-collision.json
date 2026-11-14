@@ -1,0 +1,909 @@
+{
+  "firmware_sha256": "fe1209c5395d9334cbcc0e828f91616ebe6d6c2bc199796099dc8892b0e5aedd",
+  "handler": "0x25a52a",
+  "coincident_timers": "secondary message 0 before main message 1 (ordering unverified)",
+  "scenarios": [
+    {
+      "name": "unsteered_three_lives",
+      "inputs_after_first_tick": [],
+      "episodes": [
+        [
+          {
+            "ms": 9200,
+            "return": 33,
+            "event": 23,
+            "lives": 3,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312628",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9300,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9300,
+            "return": 27,
+            "event": 23,
+            "lives": 3,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312628",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9400,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9400,
+            "return": 33,
+            "event": 23,
+            "lives": 3,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312630",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9500,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9500,
+            "return": 33,
+            "event": 23,
+            "lives": 3,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312628",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9600,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9600,
+            "return": 33,
+            "event": 23,
+            "lives": 3,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312620",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9700,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9700,
+            "return": 33,
+            "event": 23,
+            "lives": 2,
+            "hit_state": 0,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312544",
+              "width": 10,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9800,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9800,
+            "return": 19,
+            "event": 23,
+            "lives": 2,
+            "hit_state": 0,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312544",
+              "width": 10,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9900,
+            "next_secondary_ms": 12800
+          }
+        ],
+        [
+          {
+            "ms": 16500,
+            "return": 33,
+            "event": 23,
+            "lives": 2,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312628",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 16600,
+            "next_secondary_ms": 18800
+          },
+          {
+            "ms": 16600,
+            "return": 27,
+            "event": 23,
+            "lives": 2,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312628",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 16700,
+            "next_secondary_ms": 18800
+          },
+          {
+            "ms": 16700,
+            "return": 33,
+            "event": 23,
+            "lives": 2,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312630",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 16800,
+            "next_secondary_ms": 18800
+          },
+          {
+            "ms": 16800,
+            "return": 33,
+            "event": 23,
+            "lives": 2,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312628",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 16900,
+            "next_secondary_ms": 18800
+          },
+          {
+            "ms": 16900,
+            "return": 33,
+            "event": 23,
+            "lives": 2,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312620",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 17000,
+            "next_secondary_ms": 18800
+          },
+          {
+            "ms": 17000,
+            "return": 33,
+            "event": 23,
+            "lives": 1,
+            "hit_state": 0,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312544",
+              "width": 10,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 17100,
+            "next_secondary_ms": 18800
+          },
+          {
+            "ms": 17100,
+            "return": 19,
+            "event": 23,
+            "lives": 1,
+            "hit_state": 0,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312544",
+              "width": 10,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 17200,
+            "next_secondary_ms": 20100
+          }
+        ],
+        [
+          {
+            "ms": 29500,
+            "return": 33,
+            "event": 23,
+            "lives": 1,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312628",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 29600,
+            "next_secondary_ms": 32100
+          },
+          {
+            "ms": 29600,
+            "return": 27,
+            "event": 23,
+            "lives": 1,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312628",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 29700,
+            "next_secondary_ms": 32100
+          },
+          {
+            "ms": 29700,
+            "return": 33,
+            "event": 23,
+            "lives": 1,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312630",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 29800,
+            "next_secondary_ms": 32100
+          },
+          {
+            "ms": 29800,
+            "return": 33,
+            "event": 23,
+            "lives": 1,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312628",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 29900,
+            "next_secondary_ms": 32100
+          },
+          {
+            "ms": 29900,
+            "return": 33,
+            "event": 23,
+            "lives": 1,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312620",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 30000,
+            "next_secondary_ms": 32100
+          },
+          {
+            "ms": 30000,
+            "return": 33,
+            "event": 23,
+            "lives": 0,
+            "hit_state": 1,
+            "phase": 20,
+            "delay": 800,
+            "ship": null,
+            "next_main_ms": 30800,
+            "next_secondary_ms": 32100
+          },
+          {
+            "ms": 30800,
+            "return": 22,
+            "event": 23,
+            "lives": 0,
+            "hit_state": 1,
+            "phase": 20,
+            "delay": 800,
+            "ship": null,
+            "next_main_ms": 31600,
+            "next_secondary_ms": 32100
+          },
+          {
+            "ms": 31600,
+            "return": 33,
+            "event": 23,
+            "lives": 0,
+            "hit_state": 1,
+            "phase": 20,
+            "delay": 800,
+            "ship": null,
+            "next_main_ms": 32400,
+            "next_secondary_ms": 32100
+          },
+          {
+            "ms": 32400,
+            "return": 33,
+            "event": 23,
+            "lives": 0,
+            "hit_state": 1,
+            "phase": 20,
+            "delay": 800,
+            "ship": null,
+            "next_main_ms": 33200,
+            "next_secondary_ms": 35100
+          },
+          {
+            "ms": 33200,
+            "return": 33,
+            "event": 23,
+            "lives": 0,
+            "hit_state": 1,
+            "phase": 20,
+            "delay": 800,
+            "ship": null,
+            "next_main_ms": 34000,
+            "next_secondary_ms": 35100
+          },
+          {
+            "ms": 34000,
+            "return": 33,
+            "event": 23,
+            "lives": 0,
+            "hit_state": 1,
+            "phase": 20,
+            "delay": 800,
+            "ship": null,
+            "next_main_ms": 34800,
+            "next_secondary_ms": 35100
+          },
+          {
+            "ms": 34800,
+            "return": 33,
+            "event": 23,
+            "lives": 0,
+            "hit_state": 1,
+            "phase": 20,
+            "delay": 800,
+            "ship": null,
+            "next_main_ms": 35600,
+            "next_secondary_ms": 35100
+          },
+          {
+            "ms": 35600,
+            "return": 24,
+            "event": 23,
+            "lives": 0,
+            "hit_state": 1,
+            "phase": 20,
+            "delay": 800,
+            "ship": null,
+            "next_main_ms": null,
+            "next_secondary_ms": null
+          }
+        ]
+      ]
+    },
+    {
+      "name": "up_once",
+      "inputs_after_first_tick": [
+        17
+      ],
+      "episodes": [
+        [
+          {
+            "ms": 9100,
+            "return": 33,
+            "event": 23,
+            "lives": 3,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 19,
+              "data": "0x00312628",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9200,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9200,
+            "return": 27,
+            "event": 23,
+            "lives": 3,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 19,
+              "data": "0x00312628",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9300,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9300,
+            "return": 33,
+            "event": 23,
+            "lives": 3,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 19,
+              "data": "0x00312630",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9400,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9400,
+            "return": 33,
+            "event": 23,
+            "lives": 3,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 19,
+              "data": "0x00312628",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9500,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9500,
+            "return": 33,
+            "event": 23,
+            "lives": 3,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 19,
+              "data": "0x00312620",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9600,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9600,
+            "return": 33,
+            "event": 23,
+            "lives": 2,
+            "hit_state": 0,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312544",
+              "width": 10,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9700,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9700,
+            "return": 19,
+            "event": 23,
+            "lives": 2,
+            "hit_state": 0,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312544",
+              "width": 10,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9800,
+            "next_secondary_ms": 12700
+          }
+        ]
+      ]
+    },
+    {
+      "name": "right_five",
+      "inputs_after_first_tick": [
+        20,
+        20,
+        20,
+        20,
+        20
+      ],
+      "episodes": [
+        [
+          {
+            "ms": 8900,
+            "return": 33,
+            "event": 23,
+            "lives": 3,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 10,
+              "y": 20,
+              "data": "0x00312628",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9000,
+            "next_secondary_ms": 9100
+          },
+          {
+            "ms": 9000,
+            "return": 27,
+            "event": 23,
+            "lives": 3,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 10,
+              "y": 20,
+              "data": "0x00312628",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9100,
+            "next_secondary_ms": 9100
+          },
+          {
+            "ms": 9100,
+            "return": 33,
+            "event": 23,
+            "lives": 3,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 10,
+              "y": 20,
+              "data": "0x00312630",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9200,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9200,
+            "return": 33,
+            "event": 23,
+            "lives": 3,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 10,
+              "y": 20,
+              "data": "0x00312628",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9300,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9300,
+            "return": 33,
+            "event": 23,
+            "lives": 3,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 10,
+              "y": 20,
+              "data": "0x00312620",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9400,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9400,
+            "return": 33,
+            "event": 23,
+            "lives": 2,
+            "hit_state": 0,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312544",
+              "width": 10,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9500,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9500,
+            "return": 19,
+            "event": 23,
+            "lives": 2,
+            "hit_state": 0,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312544",
+              "width": 10,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9600,
+            "next_secondary_ms": 12500
+          }
+        ]
+      ]
+    },
+    {
+      "name": "down_once",
+      "inputs_after_first_tick": [
+        9
+      ],
+      "episodes": [
+        [
+          {
+            "ms": 9400,
+            "return": 33,
+            "event": 23,
+            "lives": 3,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 21,
+              "data": "0x00312628",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9500,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9500,
+            "return": 27,
+            "event": 23,
+            "lives": 3,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 21,
+              "data": "0x00312628",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9600,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9600,
+            "return": 33,
+            "event": 23,
+            "lives": 3,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 21,
+              "data": "0x00312630",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9700,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9700,
+            "return": 33,
+            "event": 23,
+            "lives": 3,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 21,
+              "data": "0x00312628",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9800,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9800,
+            "return": 33,
+            "event": 23,
+            "lives": 3,
+            "hit_state": 1,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 21,
+              "data": "0x00312620",
+              "width": 7,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 9900,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 9900,
+            "return": 33,
+            "event": 23,
+            "lives": 2,
+            "hit_state": 0,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312544",
+              "width": 10,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 10000,
+            "next_secondary_ms": 12100
+          },
+          {
+            "ms": 10000,
+            "return": 19,
+            "event": 23,
+            "lives": 2,
+            "hit_state": 0,
+            "phase": 10,
+            "delay": 100,
+            "ship": {
+              "x": 5,
+              "y": 20,
+              "data": "0x00312544",
+              "width": 10,
+              "height": 7,
+              "flags": 2
+            },
+            "next_main_ms": 10100,
+            "next_secondary_ms": 13000
+          }
+        ]
+      ]
+    }
+  ]
+}

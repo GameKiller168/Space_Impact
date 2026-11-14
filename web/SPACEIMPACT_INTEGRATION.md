@@ -1,0 +1,11 @@
+# Space Impact shell integration
+
+The shell is prepared for a Space Impact engine but is not connected to the current Snake II page. `spaceimpact-phone.js` contains no game rules, and the current test adapter is only a test double.
+
+Load the shared framebuffer, fonts, text, screens, localization, input and save modules first; then load `spaceimpact-storage.js`, `spaceimpact-phone.js` and `spaceimpact-app.js`. Supply an engine adapter with `create()` and `restore(snapshot)`. Both return a game with `advance(ms)`, `press(key)`, `draw(framebuffer)` and `snapshot()`. The game may also provide `release(key)`. `advance`, `press` and `release` may return `{ events: [...] }` and/or `{ ended: true, score: number }`. The adapter must validate the full game snapshot in `restore` and return a falsy value when it cannot restore it.
+
+Create the coordinator with `SpaceImpact.App.create({ engine, pad, paint, instructions, audio, onGameEvent })`. `paint(framebuffer)` can call the shared LCD painter. The optional `instructions(language)` callback must supply Space Impact text; without it the shell does not display the Snake II instructions. `onGameEvent(event, settings)` connects decoded Space Impact sound and vibration events. The `audio` object can provide the shared `unlock`, `keyDown`, `keyUp` and `stopAll` methods for keypad tones. Do not route Space Impact game events through the Snake II game-tone table.
+
+Call `app.frame()` in the host's animation loop and `app.stop()` when that loop is removed. When the coordinator creates the phone, it restores a validated snapshot at construction; a host that supplies its own `phone` is responsible for restoring it first. The coordinator schedules autosaves through the shared coalescing save module, flushes on page hiding, releases held keys and sound voices, and prevents hidden time from advancing the game. The latest separately persisted Options settings take precedence over older settings inside a saved game. Its `save` and `settings` keys are distinct from the Snake II keys.
+
+This integration does not establish the original game's menu timing, input repeat timing, audio scripts, instructions in each firmware language, or game state format. Those must come from the firmware-specific adapter and verified resources.

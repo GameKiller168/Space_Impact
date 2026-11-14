@@ -1,0 +1,5 @@
+# Full firmware dumps, footage and scratch analysis stay local.
+reference/
+work/
+__pycache__/
+*.py[cod]

@@ -1,0 +1,260 @@
+{
+  "firmware_sha256": "fe1209c5395d9334cbcc0e828f91616ebe6d6c2bc199796099dc8892b0e5aedd",
+  "handler": "0x25a52a",
+  "startup_message": 36,
+  "initial_ship_position": [
+    5,
+    20
+  ],
+  "cases": [
+    {
+      "name": "up",
+      "sequence": [
+        {
+          "message": 17,
+          "count": 1
+        }
+      ],
+      "ship_position": [
+        5,
+        19
+      ]
+    },
+    {
+      "name": "down",
+      "sequence": [
+        {
+          "message": 9,
+          "count": 1
+        }
+      ],
+      "ship_position": [
+        5,
+        21
+      ]
+    },
+    {
+      "name": "right",
+      "sequence": [
+        {
+          "message": 20,
+          "count": 1
+        }
+      ],
+      "ship_position": [
+        6,
+        20
+      ]
+    },
+    {
+      "name": "left",
+      "sequence": [
+        {
+          "message": 22,
+          "count": 1
+        }
+      ],
+      "ship_position": [
+        4,
+        20
+      ]
+    },
+    {
+      "name": "up_repeat",
+      "sequence": [
+        {
+          "message": 145,
+          "count": 1
+        }
+      ],
+      "ship_position": [
+        5,
+        18
+      ]
+    },
+    {
+      "name": "down_repeat",
+      "sequence": [
+        {
+          "message": 137,
+          "count": 1
+        }
+      ],
+      "ship_position": [
+        5,
+        22
+      ]
+    },
+    {
+      "name": "right_repeat",
+      "sequence": [
+        {
+          "message": 148,
+          "count": 1
+        }
+      ],
+      "ship_position": [
+        7,
+        20
+      ]
+    },
+    {
+      "name": "left_repeat",
+      "sequence": [
+        {
+          "message": 150,
+          "count": 1
+        }
+      ],
+      "ship_position": [
+        3,
+        20
+      ]
+    },
+    {
+      "name": "top_limit",
+      "sequence": [
+        {
+          "message": 17,
+          "count": 100
+        }
+      ],
+      "ship_position": [
+        5,
+        6
+      ]
+    },
+    {
+      "name": "bottom_limit",
+      "sequence": [
+        {
+          "message": 9,
+          "count": 100
+        }
+      ],
+      "ship_position": [
+        5,
+        41
+      ]
+    },
+    {
+      "name": "right_limit",
+      "sequence": [
+        {
+          "message": 20,
+          "count": 100
+        }
+      ],
+      "ship_position": [
+        73,
+        20
+      ]
+    },
+    {
+      "name": "left_limit",
+      "sequence": [
+        {
+          "message": 22,
+          "count": 100
+        }
+      ],
+      "ship_position": [
+        1,
+        20
+      ]
+    },
+    {
+      "name": "top_repeated_step_at_seven",
+      "sequence": [
+        {
+          "message": 17,
+          "count": 13
+        },
+        {
+          "message": 145,
+          "count": 1
+        }
+      ],
+      "ship_position": [
+        5,
+        7
+      ]
+    },
+    {
+      "name": "bottom_repeated_step_at_forty",
+      "sequence": [
+        {
+          "message": 9,
+          "count": 20
+        },
+        {
+          "message": 137,
+          "count": 1
+        }
+      ],
+      "ship_position": [
+        5,
+        40
+      ]
+    },
+    {
+      "name": "right_repeated_step_at_72",
+      "sequence": [
+        {
+          "message": 20,
+          "count": 67
+        },
+        {
+          "message": 148,
+          "count": 1
+        }
+      ],
+      "ship_position": [
+        72,
+        20
+      ]
+    },
+    {
+      "name": "left_repeated_step_at_two",
+      "sequence": [
+        {
+          "message": 22,
+          "count": 3
+        },
+        {
+          "message": 150,
+          "count": 1
+        }
+      ],
+      "ship_position": [
+        2,
+        20
+      ]
+    },
+    {
+      "name": "diagonal_sequence",
+      "sequence": [
+        {
+          "message": 17,
+          "count": 4
+        },
+        {
+          "message": 20,
+          "count": 6
+        },
+        {
+          "message": 9,
+          "count": 2
+        },
+        {
+          "message": 22,
+          "count": 3
+        }
+      ],
+      "ship_position": [
+        8,
+        18
+      ]
+    }
+  ]
+}

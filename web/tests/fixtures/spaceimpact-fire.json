@@ -1,0 +1,680 @@
+{
+  "source": "Nokia 3310 v6.39 PPM B, app 1, handler 0x25a52a",
+  "firmware_sha256": "fe1209c5395d9334cbcc0e828f91616ebe6d6c2bc199796099dc8892b0e5aedd",
+  "cases": [
+    {
+      "name": "main_1",
+      "steps": [
+        {
+          "message": 10,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 1,
+          "repeats": 0,
+          "shots": [
+            {
+              "x": 11,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 1,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 2,
+          "repeats": 0,
+          "shots": [
+            {
+              "x": 13,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 1,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 0,
+          "repeats": 0,
+          "shots": [
+            {
+              "x": 15,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 1,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 0,
+          "repeats": 0,
+          "shots": [
+            {
+              "x": 17,
+              "y": 23
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "main_3",
+      "steps": [
+        {
+          "message": 12,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 1,
+          "repeats": 0,
+          "shots": [
+            {
+              "x": 11,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 1,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 2,
+          "repeats": 0,
+          "shots": [
+            {
+              "x": 13,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 1,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 0,
+          "repeats": 0,
+          "shots": [
+            {
+              "x": 15,
+              "y": 23
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cooldown",
+      "steps": [
+        {
+          "message": 10,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 1,
+          "repeats": 0,
+          "shots": [
+            {
+              "x": 11,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 10,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 1,
+          "repeats": 0,
+          "shots": [
+            {
+              "x": 11,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 1,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 2,
+          "repeats": 0,
+          "shots": [
+            {
+              "x": 13,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 10,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 2,
+          "repeats": 0,
+          "shots": [
+            {
+              "x": 13,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 1,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 0,
+          "repeats": 0,
+          "shots": [
+            {
+              "x": 15,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 10,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 1,
+          "repeats": 0,
+          "shots": [
+            {
+              "x": 15,
+              "y": 23
+            },
+            {
+              "x": 11,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 1,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 2,
+          "repeats": 0,
+          "shots": [
+            {
+              "x": 17,
+              "y": 23
+            },
+            {
+              "x": 13,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 1,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 0,
+          "repeats": 0,
+          "shots": [
+            {
+              "x": 19,
+              "y": 23
+            },
+            {
+              "x": 15,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 12,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 1,
+          "repeats": 0,
+          "shots": [
+            {
+              "x": 19,
+              "y": 23
+            },
+            {
+              "x": 15,
+              "y": 23
+            },
+            {
+              "x": 11,
+              "y": 23
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "moved_ship",
+      "steps": [
+        {
+          "message": 17,
+          "ship": [
+            5,
+            19
+          ],
+          "cooldown": 0,
+          "repeats": 0,
+          "shots": []
+        },
+        {
+          "message": 20,
+          "ship": [
+            6,
+            19
+          ],
+          "cooldown": 0,
+          "repeats": 0,
+          "shots": []
+        },
+        {
+          "message": 10,
+          "ship": [
+            6,
+            19
+          ],
+          "cooldown": 1,
+          "repeats": 0,
+          "shots": [
+            {
+              "x": 12,
+              "y": 22
+            }
+          ]
+        },
+        {
+          "message": 1,
+          "ship": [
+            6,
+            19
+          ],
+          "cooldown": 2,
+          "repeats": 0,
+          "shots": [
+            {
+              "x": 14,
+              "y": 22
+            }
+          ]
+        },
+        {
+          "message": 1,
+          "ship": [
+            6,
+            19
+          ],
+          "cooldown": 0,
+          "repeats": 0,
+          "shots": [
+            {
+              "x": 16,
+              "y": 22
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "high_variants",
+      "steps": [
+        {
+          "message": 138,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 1,
+          "repeats": 1,
+          "shots": [
+            {
+              "x": 11,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 138,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 1,
+          "repeats": 2,
+          "shots": [
+            {
+              "x": 11,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 1,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 2,
+          "repeats": 2,
+          "shots": [
+            {
+              "x": 13,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 1,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 0,
+          "repeats": 2,
+          "shots": [
+            {
+              "x": 15,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 138,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 1,
+          "repeats": 3,
+          "shots": [
+            {
+              "x": 15,
+              "y": 23
+            },
+            {
+              "x": 11,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 140,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 1,
+          "repeats": 4,
+          "shots": [
+            {
+              "x": 15,
+              "y": 23
+            },
+            {
+              "x": 11,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 1,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 2,
+          "repeats": 4,
+          "shots": [
+            {
+              "x": 17,
+              "y": 23
+            },
+            {
+              "x": 13,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 1,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 0,
+          "repeats": 4,
+          "shots": [
+            {
+              "x": 19,
+              "y": 23
+            },
+            {
+              "x": 15,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 140,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 1,
+          "repeats": 5,
+          "shots": [
+            {
+              "x": 19,
+              "y": 23
+            },
+            {
+              "x": 15,
+              "y": 23
+            },
+            {
+              "x": 11,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 138,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 1,
+          "repeats": 5,
+          "shots": [
+            {
+              "x": 19,
+              "y": 23
+            },
+            {
+              "x": 15,
+              "y": 23
+            },
+            {
+              "x": 11,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 138,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 1,
+          "repeats": 5,
+          "shots": [
+            {
+              "x": 19,
+              "y": 23
+            },
+            {
+              "x": 15,
+              "y": 23
+            },
+            {
+              "x": 11,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 138,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 1,
+          "repeats": 5,
+          "shots": [
+            {
+              "x": 19,
+              "y": 23
+            },
+            {
+              "x": 15,
+              "y": 23
+            },
+            {
+              "x": 11,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 1,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 2,
+          "repeats": 5,
+          "shots": [
+            {
+              "x": 21,
+              "y": 23
+            },
+            {
+              "x": 17,
+              "y": 23
+            },
+            {
+              "x": 13,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 1,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 0,
+          "repeats": 5,
+          "shots": [
+            {
+              "x": 23,
+              "y": 23
+            },
+            {
+              "x": 19,
+              "y": 23
+            },
+            {
+              "x": 15,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 138,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 0,
+          "repeats": 5,
+          "shots": [
+            {
+              "x": 23,
+              "y": 23
+            },
+            {
+              "x": 19,
+              "y": 23
+            },
+            {
+              "x": 15,
+              "y": 23
+            }
+          ]
+        },
+        {
+          "message": 10,
+          "ship": [
+            5,
+            20
+          ],
+          "cooldown": 1,
+          "repeats": 0,
+          "shots": [
+            {
+              "x": 23,
+              "y": 23
+            },
+            {
+              "x": 19,
+              "y": 23
+            },
+            {
+              "x": 15,
+              "y": 23
+            },
+            {
+              "x": 11,
+              "y": 23
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,611 @@
+{
+  "firmware_sha256": "fe1209c5395d9334cbcc0e828f91616ebe6d6c2bc199796099dc8892b0e5aedd",
+  "handler": "0x25a52a",
+  "descriptor": "0x312084",
+  "wave_table": "0x311820",
+  "timer_ms": 100,
+  "inputs": [],
+  "coincident_timers": "secondary message 0 before main message 1 (ordering unverified)",
+  "first_three_records": [
+    "030512020623080200010000",
+    "020512020623110200010000",
+    "020512010623110200010000"
+  ],
+  "snapshots": [
+    {
+      "tick": 20,
+      "ms": 2000,
+      "scroll": 19,
+      "waves_left": 20,
+      "wait_ticks": 1,
+      "enemies": []
+    },
+    {
+      "tick": 21,
+      "ms": 2100,
+      "scroll": 20,
+      "waves_left": 19,
+      "wait_ticks": 35,
+      "enemies": [
+        {
+          "x": 82,
+          "y": 8,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 100,
+          "y": 8,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 118,
+          "y": 8,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        }
+      ]
+    },
+    {
+      "tick": 22,
+      "ms": 2200,
+      "scroll": 21,
+      "waves_left": 19,
+      "wait_ticks": 34,
+      "enemies": [
+        {
+          "x": 80,
+          "y": 8,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 98,
+          "y": 8,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 116,
+          "y": 8,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        }
+      ]
+    },
+    {
+      "tick": 55,
+      "ms": 5500,
+      "scroll": 54,
+      "waves_left": 19,
+      "wait_ticks": 1,
+      "enemies": [
+        {
+          "x": 14,
+          "y": 8,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 32,
+          "y": 8,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 50,
+          "y": 8,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        }
+      ]
+    },
+    {
+      "tick": 56,
+      "ms": 5600,
+      "scroll": 55,
+      "waves_left": 18,
+      "wait_ticks": 35,
+      "enemies": [
+        {
+          "x": 12,
+          "y": 8,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 30,
+          "y": 8,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 48,
+          "y": 8,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 82,
+          "y": 17,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 100,
+          "y": 17,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        }
+      ]
+    },
+    {
+      "tick": 57,
+      "ms": 5700,
+      "scroll": 56,
+      "waves_left": 18,
+      "wait_ticks": 34,
+      "enemies": [
+        {
+          "x": 10,
+          "y": 8,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 28,
+          "y": 8,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 46,
+          "y": 8,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 80,
+          "y": 17,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 98,
+          "y": 17,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        }
+      ]
+    },
+    {
+      "tick": 61,
+      "ms": 6100,
+      "scroll": 60,
+      "waves_left": 18,
+      "wait_ticks": 30,
+      "enemies": [
+        {
+          "x": 2,
+          "y": 8,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 20,
+          "y": 8,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 38,
+          "y": 8,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 72,
+          "y": 17,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 90,
+          "y": 17,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        }
+      ]
+    },
+    {
+      "tick": 62,
+      "ms": 6200,
+      "scroll": 61,
+      "waves_left": 18,
+      "wait_ticks": 29,
+      "enemies": [
+        {
+          "x": 0,
+          "y": 8,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 18,
+          "y": 8,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 36,
+          "y": 8,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 70,
+          "y": 17,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 88,
+          "y": 17,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        }
+      ]
+    },
+    {
+      "tick": 63,
+      "ms": 6300,
+      "scroll": 62,
+      "waves_left": 18,
+      "wait_ticks": 28,
+      "enemies": [
+        {
+          "x": 16,
+          "y": 8,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 34,
+          "y": 8,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 68,
+          "y": 17,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 86,
+          "y": 17,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        }
+      ]
+    },
+    {
+      "tick": 70,
+      "ms": 7000,
+      "scroll": 69,
+      "waves_left": 18,
+      "wait_ticks": 21,
+      "enemies": [
+        {
+          "x": 2,
+          "y": 8,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 20,
+          "y": 8,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 54,
+          "y": 17,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 72,
+          "y": 17,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        }
+      ]
+    },
+    {
+      "tick": 71,
+      "ms": 7100,
+      "scroll": 70,
+      "waves_left": 18,
+      "wait_ticks": 20,
+      "enemies": [
+        {
+          "x": 0,
+          "y": 8,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 18,
+          "y": 8,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 52,
+          "y": 17,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 70,
+          "y": 17,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        }
+      ]
+    },
+    {
+      "tick": 72,
+      "ms": 7200,
+      "scroll": 71,
+      "waves_left": 18,
+      "wait_ticks": 19,
+      "enemies": [
+        {
+          "x": 16,
+          "y": 8,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 50,
+          "y": 17,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 68,
+          "y": 17,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        }
+      ]
+    },
+    {
+      "tick": 79,
+      "ms": 7900,
+      "scroll": 78,
+      "waves_left": 18,
+      "wait_ticks": 12,
+      "enemies": [
+        {
+          "x": 2,
+          "y": 8,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 36,
+          "y": 17,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 54,
+          "y": 17,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        }
+      ]
+    },
+    {
+      "tick": 80,
+      "ms": 8000,
+      "scroll": 79,
+      "waves_left": 18,
+      "wait_ticks": 11,
+      "enemies": [
+        {
+          "x": 0,
+          "y": 8,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 34,
+          "y": 17,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 52,
+          "y": 17,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        }
+      ]
+    },
+    {
+      "tick": 81,
+      "ms": 8100,
+      "scroll": 80,
+      "waves_left": 18,
+      "wait_ticks": 10,
+      "enemies": [
+        {
+          "x": 32,
+          "y": 17,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 50,
+          "y": 17,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        }
+      ]
+    },
+    {
+      "tick": 90,
+      "ms": 9000,
+      "scroll": 89,
+      "waves_left": 18,
+      "wait_ticks": 1,
+      "enemies": [
+        {
+          "x": 14,
+          "y": 17,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 32,
+          "y": 17,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        }
+      ]
+    },
+    {
+      "tick": 91,
+      "ms": 9100,
+      "scroll": 90,
+      "waves_left": 17,
+      "wait_ticks": 35,
+      "enemies": [
+        {
+          "x": 12,
+          "y": 17,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 30,
+          "y": 17,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 83,
+          "y": 17,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 101,
+          "y": 17,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        }
+      ]
+    },
+    {
+      "tick": 92,
+      "ms": 9200,
+      "scroll": 91,
+      "waves_left": 17,
+      "wait_ticks": 34,
+      "enemies": [
+        {
+          "x": 10,
+          "y": 17,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 28,
+          "y": 17,
+          "data": "0x003122e0",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 82,
+          "y": 17,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        },
+        {
+          "x": 100,
+          "y": 17,
+          "data": "0x003122d4",
+          "width": 11,
+          "height": 5
+        }
+      ]
+    }
+  ]
+}
