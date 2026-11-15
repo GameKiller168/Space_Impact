@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0-beta.3
+
+- **Pictures:** the ship of level 1 and the bosses of levels 1, 5 and 6 are stored as negatives in the firmware and were drawn as boxes with a hole. They are drawn the right way round now, the ship has its own picture on level 1, and the app icon shows the real ship and the level 1 boss (reported with reference footage of the real game).
+- **Bosses of levels 1 to 7 are exact:** entry, bounce off the terrain, the charge attacks, bullets and the special shots (homing, straight and wave missiles), all random draws, tick by tick against the firmware; boss hits score 5, the kill 100.
+- The ship's flight at the end of a level is the firmware's (checked on seven levels); the terrain keeps scrolling on level 6 until its last empty waves are used up.
+- Bullets made right behind their shooter in the display list wait one tick, as in the firmware (20 instead of 26 early stops in the enemy-fire comparison).
+- The service worker revalidates requests, so a new release shows up at once.
+
 ## 0.2.0-beta.2
 
 - Your shots hit by the firmware's rule: the first object whose box touches the shot takes one hit point; 5 points for a hit, 10 for a kill, none for an enemy bullet; the explosion shows the enemy's own picture first.

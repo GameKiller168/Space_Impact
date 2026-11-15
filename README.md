@@ -2,7 +2,7 @@
 
 A fan-made recreation of the Nokia 3310 game **Space Impact** in the browser, rebuilt from data read out of the phone's own firmware (v6.39, PPM B).
 
-**[▶ Play v0.2 beta 2](https://gamekiller168.github.io/Space_Impact/)** · [What is verified](web/FIDELITY.md) · [Changelog](CHANGELOG.md)
+**[▶ Play v0.2 beta 3](https://gamekiller168.github.io/Space_Impact/)** · [What is verified](web/FIDELITY.md) · [Changelog](CHANGELOG.md)
 
 > **Beta.** The ordinary enemies, their shots, how your shots hit and score, the waves, the ship (lives, shield, terrain contact), pickups, the bonus weapon, the terrain and the texts follow the firmware and are checked against it by tests. The bosses of levels 1 to 7 and the level ends follow the firmware; the final boss is still an estimate; an honest list is in [web/FIDELITY.md](web/FIDELITY.md). It is **not** a verified copy and not v1.0.
 
