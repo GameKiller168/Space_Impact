@@ -82,7 +82,8 @@ self.addEventListener('activate', function (event) {
 self.addEventListener('fetch', function (event) {
   const request = event.request;
   if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
-  event.respondWith(fetch(request).then(function (response) {
+  // revalidate with the server so that a new release shows up at once instead of after the browser's own cache lifetime
+  event.respondWith(fetch(request, { cache: 'no-cache' }).then(function (response) {
     if (!response.ok) return response;
     const copy = response.clone();
     return caches.open(CACHE).then(function (cache) { return cache.put(request, copy); })

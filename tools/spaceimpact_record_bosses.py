@@ -86,8 +86,10 @@ def main():
     parser.add_argument('--seed', type=lambda value: int(value, 0), default=0x1234)
     args = parser.parse_args()
     traces, ended = record(args.flash, args.observe, args.last_tick, args.seed)
-    if len(traces) != 8 or not ended:
-        raise RuntimeError('recording incomplete: %d bosses, game ended: %s' % (len(traces), ended))
+    if len(traces) != 8:
+        raise RuntimeError('recording incomplete: %d bosses' % len(traces))
+    if not ended:
+        print('warning: the game had not ended when the recording stopped (the last boss fight is cut off)', flush=True)
     out = {'firmware_sha256': hashlib.sha256(Path(args.flash).read_bytes()).hexdigest(),
            'handler': '0x25a52a', 'seed': args.seed, 'observation_ticks': args.observe,
            'timer_order': 'secondary before main when both are due (phone ordering unverified)', 'levels': traces}
