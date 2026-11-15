@@ -24,6 +24,7 @@
   var Weapons = ns.Weapons || (req ? require('./spaceimpact-weapons.js') : null);
   var Render = ns.Render || (req ? require('./spaceimpact-render.js') : null);
   var Classes = ns.Classes || (req ? require('./spaceimpact-classes.js') : null);
+  var Random = ns.Random || (req ? require('./spaceimpact-random.js') : null);
   var Text = common.Text || (req ? require('./text.js') : null);
 
   var TICK_MS = 100, MAX_ACC = 1000;
@@ -42,13 +43,8 @@
   }
 
   // ---- random numbers ----------------------------------------------------------------------------------------------
-  function nextRandom(game) {
-    var t = (game.rng = (game.rng + 0x6D2B79F5) | 0);
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  }
-  function randomInt(game, n) { return Math.floor(nextRandom(game) * n); }
+  function nextRandom(game) { return Random.effects(game.rng) / 0xfff1; }
+  function randomInt(game, n) { return Random.spawn(game.rng) % n; }
 
   // ---- objects -----------------------------------------------------------------------------------------------------
   function frameOf(object) {
@@ -130,7 +126,7 @@
   }
 
   function newState(seed) {
-    return { v: 1, rng: seed | 0, level: 0, tick: 1, scroll: 0, wavesLeft: 0, wait: 0, waveIndex: 0, bossSeen: false,
+    return { v: 1, rng: Random.create(seed), level: 0, tick: 1, scroll: 0, wavesLeft: 0, wait: 0, waveIndex: 0, bossSeen: false,
       mode: 'play', modeTick: 0, ship: { x: START_X, y: START_Y }, lives: START_LIVES, score: 0, guard: SHIELD_TICKS,
       weapons: Weapons.initial(), objects: [], nextId: 1, extra: [] };
   }
@@ -419,7 +415,7 @@
   function restore(snapshot) {
     var s = snapshot, i, o;
     if (!s || typeof s !== 'object' || s.v !== 1) return null;
-    if (!isInt(s.rng, -2147483648, 2147483647) || !isInt(s.level, 0, LevelData.allLevels.length - 1) || !isInt(s.tick, 1, 1e9) ||
+    if (!Random.valid(s.rng) || !isInt(s.level, 0, LevelData.allLevels.length - 1) || !isInt(s.tick, 1, 1e9) ||
         !isInt(s.scroll, 0, 511) || !isInt(s.wavesLeft, -100, 100) || !isInt(s.wait, -100, 1000) || !isInt(s.waveIndex, 0, LevelData.allLevels[s.level].waveRecords.length) ||
         typeof s.bossSeen !== 'boolean' || ['play', 'dying', 'clear', 'over', 'won'].indexOf(s.mode) < 0 || !isInt(s.modeTick, 0, 1e6) ||
         !isInt(s.lives, 0, MAX_LIVES) || !isInt(s.score, 0, 1e9) || !isInt(s.guard, 0, SHIELD_TICKS) || !isInt(s.nextId, 1, 1e9)) return null;
@@ -436,6 +432,7 @@
     }
     var game = new Game({});
     for (i = 0; i < KEYS.length; i++) game[KEYS[i]] = s[KEYS[i]];
+    game.rng = { spawn: s.rng.spawn, effects: s.rng.effects };
     game.ship = { x: s.ship.x, y: s.ship.y };
     game.weapons = { cooldown: w.cooldown, repeats: w.repeats, shots: w.shots.map(function (shot) { return { x: shot.x, y: shot.y }; }) };
     game.objects = s.objects.map(function (obj) {
