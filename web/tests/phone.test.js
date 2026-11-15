@@ -1,5 +1,7 @@
 'use strict';
 
+require('./support/locale.js');
+
 /*
  * The phone around the game, on its virtual clock: start-up, circular menus, the maze list, notes, pausing, the way
  * a game ends. The numbers in the expectations come from footage of real phones (VIDEO B, D) and the program of the
