@@ -12,7 +12,7 @@ const manifest = JSON.parse(fs.readFileSync(path.join(web, 'manifest.webmanifest
 const workerCode = fs.readFileSync(path.join(web, 'sw.js'), 'utf8');
 const sprites = require('../js/spaceimpact-assets.js').images;
 const base = 'https://example.test/projects/space-impact/';
-const cacheName = 'space-impact-v0.2.0-beta.4';
+const cacheName = 'space-impact-v0.2.0-beta.5';
 
 function pngInfo(file) {
   const bytes = fs.readFileSync(file);

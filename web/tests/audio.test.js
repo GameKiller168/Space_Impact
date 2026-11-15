@@ -127,7 +127,7 @@ test('a key plays a short click on press and a different, quieter one on release
   audio.keyDown('5');
   assert.equal(Context.last.sources.length, 1);
   assert.equal(Context.last.oscillators.length, 1);
-  assert.ok(Context.last.oscillators[0].stops[0] - Context.last.oscillators[0].starts[0] < 0.06);
+  assert.ok(Context.last.oscillators[0].stops[0] - Context.last.oscillators[0].starts[0] < 0.09);
   audio.keyUp('5');
   assert.equal(Context.last.sources.length, 2);
   assert.equal(Context.last.oscillators.length, 2);

@@ -4,18 +4,18 @@
   var NS = (globalThis.SnakeII = globalThis.SnakeII || {});
   var Tones = NS.Tones;
   var GAME_GAIN = 0.2; // This peak level is an estimate, not firmware data.
-  var KEY_GAIN = 0.35; // Click levels are estimates, not firmware data.
+  var KEY_GAIN = 0.3; // Click levels are estimates, not firmware data.
   // Four key-down and three key-up clicks: noise burst (plastic snap) plus a falling thump (dome and housing).
   var CLICK_DOWN = [
-    { noiseHz: 3200, q: 1.1, noise: 1.0, noiseMs: 14, bodyHz: 190, body: 0.9, bodyMs: 28 },
-    { noiseHz: 2700, q: 0.9, noise: 0.9, noiseMs: 18, bodyHz: 160, body: 1.0, bodyMs: 32 },
-    { noiseHz: 3600, q: 1.3, noise: 1.0, noiseMs: 12, bodyHz: 220, body: 0.8, bodyMs: 24 },
-    { noiseHz: 3000, q: 1.0, noise: 0.95, noiseMs: 16, bodyHz: 175, body: 0.95, bodyMs: 30 }
+    { noiseHz: 1100, q: 0.5, noise: 0.35, noiseMs: 22, bodyHz: 135, body: 1.0, bodyMs: 55 },
+    { noiseHz: 900, q: 0.5, noise: 0.3, noiseMs: 26, bodyHz: 115, body: 1.0, bodyMs: 62 },
+    { noiseHz: 1300, q: 0.6, noise: 0.35, noiseMs: 20, bodyHz: 150, body: 0.95, bodyMs: 50 },
+    { noiseHz: 1000, q: 0.5, noise: 0.3, noiseMs: 24, bodyHz: 125, body: 1.0, bodyMs: 58 }
   ];
   var CLICK_UP = [
-    { noiseHz: 4600, q: 1.4, noise: 0.8, noiseMs: 9, bodyHz: 300, body: 0.35, bodyMs: 14 },
-    { noiseHz: 4100, q: 1.2, noise: 0.7, noiseMs: 11, bodyHz: 260, body: 0.4, bodyMs: 16 },
-    { noiseHz: 5000, q: 1.5, noise: 0.75, noiseMs: 8, bodyHz: 330, body: 0.3, bodyMs: 12 }
+    { noiseHz: 1700, q: 0.6, noise: 0.25, noiseMs: 16, bodyHz: 190, body: 0.45, bodyMs: 32 },
+    { noiseHz: 1500, q: 0.6, noise: 0.22, noiseMs: 18, bodyHz: 170, body: 0.5, bodyMs: 36 },
+    { noiseHz: 1900, q: 0.7, noise: 0.25, noiseMs: 14, bodyHz: 205, body: 0.4, bodyMs: 30 }
   ];
   var GAME_ENVELOPE = 0.0003;
   var START_AHEAD = 0.005;
@@ -181,7 +181,8 @@
       filter.type = 'bandpass';
       filter.frequency.setValueAtTime(spec.noiseHz * jitter, t);
       if (filter.Q) filter.Q.setValueAtTime(spec.q, t);
-      noiseGain.gain.setValueAtTime(level * spec.noise, t);
+      noiseGain.gain.setValueAtTime(0.0001, t);
+      noiseGain.gain.linearRampToValueAtTime(level * spec.noise, t + 0.002);
       noiseGain.gain.exponentialRampToValueAtTime(0.0001, t + spec.noiseMs / 1000);
       source.connect(filter);
       filter.connect(noiseGain);
@@ -189,7 +190,8 @@
       body.type = 'sine';
       body.frequency.setValueAtTime(spec.bodyHz * jitter, t);
       body.frequency.exponentialRampToValueAtTime(spec.bodyHz * jitter * 0.45, t + spec.bodyMs / 1000);
-      bodyGain.gain.setValueAtTime(level * spec.body, t);
+      bodyGain.gain.setValueAtTime(0.0001, t);
+      bodyGain.gain.linearRampToValueAtTime(level * spec.body, t + 0.002);
       bodyGain.gain.exponentialRampToValueAtTime(0.0001, t + spec.bodyMs / 1000);
       body.connect(bodyGain);
       bodyGain.connect(ctx.destination);
