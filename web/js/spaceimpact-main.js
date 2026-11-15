@@ -45,7 +45,8 @@
         if (cap) cap.textContent = t('SELECT');
       } else if (key === 'scrollUp') buttons[i].setAttribute('aria-label', t('SCROLL_UP'));
       else if (key === 'scrollDown') buttons[i].setAttribute('aria-label', t('SCROLL_DOWN'));
-      else buttons[i].setAttribute('aria-label', key === 'c' ? 'C' : key);
+      else if (key === 'c') buttons[i].setAttribute('aria-label', 'C');
+      // the digit keys keep their role in the game (8 up, 0 down, * back, # forward, 1 and 3 fire, 4 and 6 bonus weapons)
     }
   }
   var previous = phone.onLanguageChange;
