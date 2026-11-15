@@ -29,7 +29,7 @@ test('ordinary enemies shoot at the same ticks, from the same places and with th
     game.rng = Random.create(fixture.seed);
     game.ship.y = c.ship_y;
     game.guard = 1e9;
-    game.terrainContact = () => false;
+    game.shipContact = () => {};
     const data = Levels.allLevels[c.level - 1];
     const saved = data.waveRecords;
     data.waveRecords = saved.slice(0, c.wave);          // only this record: the recording plays one wave

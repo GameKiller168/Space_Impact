@@ -8,8 +8,8 @@
  * class-to-sprite table and the hit points taken from the wave records.
  *
  * What is approximated, and says so in FIDELITY.md: the vertical movement of enemies, how often and from where they
- * shoot, the boss routines, points for classes that were never seen shot, pickup effects, terrain deaths, the final
- * boss's turrets, the level-end sequence's exact motion, and the bonus weapons (keys 4 and 6 do nothing yet).
+ * shoot, the boss routines, points for classes that were never seen shot, pickup flight, some bonus targeting and
+ * collisions, the final boss's turrets, and the level-end sequence's exact motion.
  */
 (function (root) {
   'use strict';
@@ -21,6 +21,9 @@
   var Terrain = root.SpaceImpactTerrain || (req ? require('./spaceimpact-terrain.js') : null);
   var Contact = ns.Contact || (req ? require('./spaceimpact-contact.js') : null);
   var TerrainContact = ns.TerrainContact || (req ? require('./spaceimpact-terrain-contact.js') : null);
+  var Pickups = ns.Pickups || (req ? require('./spaceimpact-pickups.js') : null);
+  var Bonus = ns.Bonus || (req ? require('./spaceimpact-bonus.js') : null);
+  var Font = common.Font || (req ? require('./font.js') : null);
   var Controls = ns.Controls || (req ? require('./spaceimpact-controls.js') : null);
   var Weapons = ns.Weapons || (req ? require('./spaceimpact-weapons.js') : null);
   var Render = ns.Render || (req ? require('./spaceimpact-render.js') : null);
@@ -136,16 +139,17 @@
 
   function newState(seed) {
     return { v: 1, rng: Random.create(seed), level: 0, tick: 1, scroll: 0, wavesLeft: 0, wait: 0, waveIndex: 0, bossSeen: false,
-      mode: 'play', modeTick: 0, ship: { x: START_X, y: START_Y }, lives: START_LIVES, score: 0, guard: SHIELD_TICKS,
-      weapons: Weapons.initial(), objects: [], nextId: 1, extra: [] };
+      mode: 'play', modeTick: 0, ship: { x: START_X, y: START_Y }, lives: START_LIVES, score: 0, guard: SHIELD_TICKS, guardDelay: false,
+      weapons: Weapons.initial(), bonus: { type: 10, ammo: 3, shots: [] }, objects: [], nextId: 1, extra: [] };
   }
 
   function startLevel(game, index) {
     var data = LevelData.allLevels[index];
     game.level = index; game.tick = 1; game.wavesLeft = data.waveRecords.length; game.wait = FIRST_WAVE_WAIT;
     game.waveIndex = 0; game.bossSeen = false; game.objects = []; game.extra = [];
-    game.ship = { x: START_X, y: START_Y }; game.guard = SHIELD_TICKS; game.mode = 'play'; game.modeTick = 0;
+    game.ship = { x: START_X, y: START_Y }; game.guard = SHIELD_TICKS; game.guardDelay = false; game.mode = 'play'; game.modeTick = 0;
     game.weapons = Weapons.initial();
+    game.bonus.shots = [];
   }
 
   function create(seed) {
@@ -170,13 +174,19 @@
 
   Game.prototype.fire = function (code) {
     if (this.mode !== 'play') return;
+    if (code === 13 || code === 15) {
+      var fired = Bonus.message(this.bonus, code, this.ship, this.weapons.cooldown, this.level + 1);
+      this.bonus = fired.state; this.weapons.cooldown = fired.cooldown;
+      if (fired.event) this.emit(fired.event);
+      return;
+    }
     var before = this.weapons.shots.length;
     this.weapons = Weapons.message(this.weapons, code, this.ship);
-    if (this.weapons.shots.length > before) this.emit(24);
+    if (this.weapons.shots.length > before && (code === 10 || code === 12)) this.emit(24);
   };
 
   var MOVE = { '8': 17, '0': 9, '*': 22, '#': 20 }, MOVE_REPEAT = { '8': 145, '0': 137, '*': 150, '#': 148 };
-  var FIRE = { '1': 10, '3': 12, fireMain: 10 }, FIRE_REPEAT = { '1': 138, '3': 140, fireMain: 138 };
+  var FIRE = { '1': 10, '3': 12, '4': 13, '6': 15, fireMain: 10, fireBonus: 13 }, FIRE_REPEAT = { '1': 138, '3': 140, fireMain: 138 };
 
   Game.prototype.press = function (key) {
     if (this.mode === 'play') {
@@ -208,7 +218,7 @@
   };
 
   Game.prototype.step = function () {
-    var i, object, record, data = LevelData.allLevels[this.level];
+    var i, object, record, terrainScroll = this.scroll, data = LevelData.allLevels[this.level];
     if (this.mode === 'won' || this.mode === 'over') { this.stepEnd(); return; }
     this.tick += 1;
     var wasDying = this.mode === 'dying';
@@ -255,10 +265,13 @@
       });
       // the ship's shots move first, then the held keys act
       this.weapons = Weapons.message(this.weapons, 1, this.ship);
+      this.bonus = Bonus.message(this.bonus, 1, this.ship, this.weapons.cooldown, this.level + 1, this.objects).state;
       if (this.mode === 'play') this.heldKeys();
       this.shotsHit();
-      if (this.mode === 'play') this.shipContact();
-      if (this.mode === 'play' && this.guard > 0) this.guard -= 1;
+      if (this.mode === 'play' && this.guard > 0) {
+        if (this.guardDelay) this.guardDelay = false; else this.guard -= 1;
+      }
+      if (this.mode === 'play') this.shipContact(terrainScroll);
     }
     if (wasDying) this.stepDying();
     else if (this.mode === 'dying') { /* the hit tick itself is stage 0 */ }
@@ -277,6 +290,7 @@
       if (!Object.prototype.hasOwnProperty.call(this.held, key)) continue;
       this.held[key] += 1;
       if (MOVE_REPEAT[key] && this.held[key] >= REPEAT_AFTER) this.moveShip(MOVE_REPEAT[key]);
+      else if (FIRE[key] === 13 || FIRE[key] === 15) this.fire(FIRE[key]);
       else if (FIRE_REPEAT[key]) {
         this.fire(FIRE_REPEAT[key]);
         // The firmware accepts five repeat messages per press (counter 0x10a202); a held key goes on firing here
@@ -312,11 +326,46 @@
       if (!hitSomething) kept.push(shot);
     }
     this.weapons = { cooldown: this.weapons.cooldown, repeats: this.weapons.repeats, shots: kept };
+    // Ordinary-target damage and sweep radius match isolated oracle cases; boss interactions remain estimates.
+    var remaining = [];
+    for (s = 0; s < this.bonus.shots.length; s++) {
+      var shotBonus = this.bonus.shots[s], shape = Bonus.display(shotBonus), consumed = false;
+      for (i = 0; i < this.objects.length; i++) {
+        o = this.objects[i];
+        if (o.dead || !Contact.collidable(o.cls)) continue;
+        if (shotBonus.type === 22) {
+          if (Math.abs(o.x - shape.x) > 3) continue;
+          if (Classes.isPickup(o.cls)) { this.collectPickup(o); i--; continue; }
+          if (Classes.isBoss(o.cls)) { o.hp -= 2; if (o.hp <= 0) { o.hp = 0; o.dead = 1; } }
+          else { o.hp = 0; o.dead = 1; }
+          this.score += 10;
+        } else if (!Classes.isPickup(o.cls) && shape.x <= o.x + o.w && shape.x + shape.width >= o.x &&
+                   shape.y <= o.y + o.h && shape.y + shape.height >= o.y) {
+          o.hp = Math.max(0, o.hp - 4);
+          if (!o.hp) { o.dead = 1; this.score += 10; } else this.score += 5;
+          if (shotBonus.type === 10) consumed = true;
+          break;
+        }
+      }
+      if (!consumed) remaining.push(shotBonus);
+    }
+    this.bonus.shots = remaining;
   };
 
-  Game.prototype.shipContact = function () {
-    var ship = { x: this.ship.x, y: this.ship.y, width: image(SHIP_FRAME).width, height: image(SHIP_FRAME).height, pages: pagesOf(SHIP_FRAME) };
-    if (this.guard === 0) {
+  Game.prototype.collectPickup = function (object) {
+    var index = this.objects.indexOf(object), game = this;
+    if (index >= 0) this.objects.splice(index, 1);
+    var reward = Pickups.apply({ lives: this.lives, type: this.bonus.type, ammo: this.bonus.ammo }, object.cls, function () { return randomInt(game, 4); });
+    this.lives = reward.lives; this.bonus.type = reward.type; this.bonus.ammo = reward.ammo;
+    if (reward.event) this.emit(reward.event);
+  };
+
+  Game.prototype.shipContact = function (terrainScroll) {
+    var shipFrame = this.level === 0 ? 0 : 1;
+    var ship = { x: this.ship.x, y: this.ship.y, width: image(shipFrame).width, height: image(shipFrame).height, pages: pagesOf(shipFrame) };
+    var terrainHit = TerrainContact.hits(this.level + 1, terrainScroll === undefined ? this.scroll : terrainScroll, ship);
+    if (terrainHit) this.beginDying();
+    if (this.guard === 0 && !terrainHit) {
       var list = [];
       for (var i = 0; i < this.objects.length; i++) {
         var o = this.objects[i];
@@ -325,24 +374,35 @@
         list.push({ id: o.id, class: o.cls === CLASS_BULLET ? CLASS_BULLET : o.cls, x: o.x & 255, y: o.y & 255, width: o.w, height: o.h, pages: pagesOf(frame) });
       }
       var result;
-      try { result = Contact.shipContact(ship, list, { mode: 2, guard: 0 }); } catch (ignore) { result = { outcome: 'none' }; }
+      try { result = Contact.shipContact(ship, list, { mode: LevelData.allLevels[this.level].descriptor[13], guard: 0 }); } catch (ignore) { result = { outcome: 'none' }; }
       if (result.outcome === 'pickup') {
-        for (var j = 0; j < this.objects.length; j++) if (this.objects[j].id === result.object.id) this.objects.splice(j, 1);
-        if (this.lives < MAX_LIVES) this.lives += 1; else this.score += 50;
+        for (var j = 0; j < this.objects.length; j++) if (this.objects[j].id === result.object.id) { this.collectPickup(this.objects[j]); break; }
       } else if (result.outcome === 'hit') {
         for (var k = 0; k < this.objects.length; k++) {
-          if (this.objects[k].id === result.object.id && !Classes.isBoss(this.objects[k].cls)) this.objects[k].dead = 1;
+          if (this.objects[k].id === result.object.id) {
+            this.objects[k].hp = (this.objects[k].hp - 1) & 255;
+            if (this.objects[k].hp === 0) {
+              this.objects[k].dead = 1;
+              if (!Classes.isBoss(this.objects[k].cls)) this.score += 10;
+            }
+          }
         }
         this.beginDying();
         return;
       }
     }
-    if (this.terrainContact()) this.beginDying();
+    if (this.guard > 0) {
+      var shieldFrame = SHIELD_FRAMES[(this.tick + 1) % 2], shieldImage = image(shieldFrame);
+      var shield = { x: this.ship.x - 2, y: this.ship.y - 2, width: shieldImage.width, height: shieldImage.height, pages: pagesOf(shieldFrame) };
+      if (TerrainContact.hits(this.level + 1, terrainScroll === undefined ? this.scroll : terrainScroll, shield))
+        this.ship.y += (this.level === 4 || this.level === 5) ? 2 : -2;
+    }
   };
 
   Game.prototype.terrainContact = function () {
+    var frame = this.level === 0 ? 0 : 1;
     return TerrainContact.hits(this.level + 1, this.scroll, { x: this.ship.x, y: this.ship.y,
-      width: image(SHIP_FRAME).width, height: image(SHIP_FRAME).height, pages: pagesOf(SHIP_FRAME) });
+      width: image(frame).width, height: image(frame).height, pages: pagesOf(frame) });
   };
 
   Game.prototype.beginDying = function () {
@@ -355,7 +415,7 @@
     if (this.modeTick < SHIP_EXPLOSION.length) return;
     this.lives -= 1;
     if (this.lives > 0) {
-      this.ship = { x: START_X, y: START_Y }; this.guard = SHIELD_TICKS; this.mode = 'play'; this.modeTick = 0;
+      this.ship = { x: START_X, y: START_Y }; this.guard = SHIELD_TICKS; this.guardDelay = true; this.mode = 'play'; this.modeTick = 0;
       this.weapons = Weapons.initial();
     } else { this.mode = 'over'; this.modeTick = 0; this.lives = 0; }
   };
@@ -398,15 +458,30 @@
       if (o.dead) Render.blit(fb, image(o.killFrame !== undefined && o.killFrame >= 0 ? EnemyHits.explosionFrame(o.killFrame, Math.min(o.dead, ENEMY_EXPLOSION.length)) : ENEMY_EXPLOSION[Math.min(o.dead - 1, ENEMY_EXPLOSION.length - 1)]), o.x, o.y, false);
       else Render.blit(fb, image(o.cls === CLASS_BULLET ? BULLET_FRAME : frameOf(o)), o.x, o.y, false);
     }
+    for (i = 0; i < this.bonus.shots.length; i++) {
+      var bonusShot = this.bonus.shots[i], visual = Bonus.display(bonusShot);
+      if (bonusShot.type === 22) fb.fillRect(visual.x, visual.y, 1, Math.max(0, visual.endY - visual.y), 1);
+      else {
+        var spriteIndex = bonusShot.type === 10 ? 8 : (bonusShot.age === 0 ? 10 : (bonusShot.age === 1 || bonusShot.age === 5 ? 11 : 12));
+        Render.blit(fb, image(spriteIndex), visual.x, visual.y, false);
+      }
+    }
     for (i = 0; i < this.weapons.shots.length; i++) fb.fillRect(this.weapons.shots[i].x, this.weapons.shots[i].y, 2, 1, 1);
     if (this.mode === 'dying') Render.blit(fb, image(SHIP_EXPLOSION[Math.min(this.modeTick, SHIP_EXPLOSION.length - 1)]), this.ship.x, this.ship.y, false);
     else if (this.mode !== 'over') {
       Render.blit(fb, image(SHIP_FRAME), this.ship.x, this.ship.y, true);
       if (this.guard > 0 && this.mode === 'play') Render.blit(fb, image(SHIELD_FRAMES[this.tick % 2]), this.ship.x - 2, this.ship.y - 2, false);
     }
-    fb.clearRect(0, 0, 84, 6);
-    for (i = 0; i < this.lives && i < MAX_LIVES; i++) Render.blit(fb, image(HEART), i * 6, 0, true);
-    if (Text) { try { Text.drawHeader(fb, String(this.score)); } catch (ignore) {} }
+    // 0x257798 lays out the HUD at y=0, or y=43 when the terrain is above the ship.
+    var hudY = (this.level === 4 || this.level === 5) ? 43 : 0;
+    fb.clearRect(0, hudY, 84, 5);
+    for (i = 0; i < this.lives && i < MAX_LIVES; i++) Render.blit(fb, image(HEART), i * 6, hudY, true);
+    Render.blit(fb, image(this.bonus.type === 10 ? 81 : (this.bonus.type === 9 ? 82 : 83)), 36, hudY, true);
+    if (Font) {
+      var ammo = Math.max(0, this.bonus.ammo) % 100;
+      Font.drawDigit(fb, Math.floor(ammo / 10), 42, hudY); Font.drawDigit(fb, ammo % 10, 46, hudY);
+      for (i = 0; i < 5; i++) Font.drawDigit(fb, Math.floor(this.score / Math.pow(10, 4 - i)) % 10, 56 + i * 4, hudY);
+    }
     return fb;
   };
 
@@ -419,12 +494,15 @@
   };
 
   // ---- snapshot ----------------------------------------------------------------------------------------------------
-  var KEYS = ['v', 'rng', 'level', 'tick', 'scroll', 'wavesLeft', 'wait', 'waveIndex', 'bossSeen', 'mode', 'modeTick', 'lives', 'score', 'guard', 'nextId'];
+  var KEYS = ['v', 'rng', 'level', 'tick', 'scroll', 'wavesLeft', 'wait', 'waveIndex', 'bossSeen', 'mode', 'modeTick', 'lives', 'score', 'guard', 'guardDelay', 'nextId'];
 
   Game.prototype.snapshot = function () {
     var out = {};
     for (var i = 0; i < KEYS.length; i++) out[KEYS[i]] = this[KEYS[i]];
     out.ship = { x: this.ship.x, y: this.ship.y };
+    out.bonus = { type: this.bonus.type, ammo: this.bonus.ammo, shots: this.bonus.shots.map(function (s) {
+      return { type: s.type, x: s.x, y: s.y, age: s.age, endY: s.endY };
+    }) };
     out.weapons = { cooldown: this.weapons.cooldown, repeats: this.weapons.repeats, shots: this.weapons.shots.map(function (s) { return { x: s.x, y: s.y }; }) };
     out.objects = this.objects.map(function (o) {
       return { id: o.id, cls: o.cls, x: o.x, y: o.y, hp: o.hp, age: o.age, vm: o.vm, speed: o.speed, y0: o.y0, phase: o.phase, dir: o.dir, dead: o.dead, stop: o.stop, held: o.held, div: o.div, ammo: o.ammo, killFrame: o.killFrame === undefined ? -1 : o.killFrame };
@@ -441,7 +519,14 @@
         !isInt(s.scroll, 0, 511) || !isInt(s.wavesLeft, -100, 100) || !isInt(s.wait, -100, 1000) || !isInt(s.waveIndex, 0, LevelData.allLevels[s.level].waveRecords.length) ||
         typeof s.bossSeen !== 'boolean' || ['play', 'dying', 'clear', 'over', 'won'].indexOf(s.mode) < 0 || !isInt(s.modeTick, 0, 1e6) ||
         !isInt(s.lives, 0, MAX_LIVES) || !isInt(s.score, 0, 1e9) || !isInt(s.guard, 0, SHIELD_TICKS) || !isInt(s.nextId, 1, 1e9)) return null;
+    if (s.guardDelay !== undefined && typeof s.guardDelay !== 'boolean') return null;
     if (!s.ship || !isInt(s.ship.x, -10, 200) || !isInt(s.ship.y, -10, 100)) return null;
+    var bonus = s.bonus === undefined ? { type: 10, ammo: 3, shots: [] } : s.bonus;
+    if (!bonus || [9, 10, 22].indexOf(bonus.type) < 0 || !isInt(bonus.ammo, -128, 127) || !Array.isArray(bonus.shots) || bonus.shots.length > 40) return null;
+    for (i = 0; i < bonus.shots.length; i++) {
+      var b = bonus.shots[i];
+      if (!b || [9, 10, 22].indexOf(b.type) < 0 || !isInt(b.x, 0, 255) || !isInt(b.y, -10, 100) || !isInt(b.age, 0, 1e9) || !isInt(b.endY, 0, 48)) return null;
+    }
     var w = s.weapons;
     if (!w || !isInt(w.cooldown, 0, 2) || !isInt(w.repeats, 0, 100) || !Array.isArray(w.shots) || w.shots.length > 40) return null;
     for (i = 0; i < w.shots.length; i++) if (!w.shots[i] || !isInt(w.shots[i].x, -10, 200) || !isInt(w.shots[i].y, -10, 100)) return null;
@@ -457,7 +542,11 @@
     var game = new Game({});
     for (i = 0; i < KEYS.length; i++) game[KEYS[i]] = s[KEYS[i]];
     game.rng = { spawn: s.rng.spawn, effects: s.rng.effects };
+    game.guardDelay = s.guardDelay === true;
     game.ship = { x: s.ship.x, y: s.ship.y };
+    game.bonus = { type: bonus.type, ammo: bonus.ammo, shots: bonus.shots.map(function (b) {
+      return { type: b.type, x: b.x, y: b.y, age: b.age, endY: b.endY };
+    }) };
     game.weapons = { cooldown: w.cooldown, repeats: w.repeats, shots: w.shots.map(function (shot) { return { x: shot.x, y: shot.y }; }) };
     game.objects = s.objects.map(function (obj) {
       var size = sizeOf(obj.cls);
