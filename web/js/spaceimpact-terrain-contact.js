@@ -11,11 +11,12 @@
   function hits(level, scroll, ship) {
     if (level === 2) return false;
     var terrain = Terrain.renderBytes(level, scroll), origin = Terrain.originY(level);
-    var first = Math.max(0, origin - ship.y), last = Math.min(ship.height, origin + 16 - ship.y);
+    var y = ship.y & 255, baseX = ship.x & 255;
+    var first = Math.max(0, origin - y), last = Math.min(ship.height, origin + 16 - y);
     for (var row = first; row < last; row++) {
-      var terrainRow = ship.y + row - origin;
+      var terrainRow = y + row - origin;
       for (var col = 0; col < ship.width; col++) {
-        var x = ship.x + col;
+        var x = baseX + col;
         if (x < 0 || x >= 84) continue;
         if ((ship.pages[(row >> 3) * ship.width + col] & (1 << (row & 7))) &&
             (terrain[(terrainRow >> 3) * 84 + x] & (1 << (terrainRow & 7)))) return true;

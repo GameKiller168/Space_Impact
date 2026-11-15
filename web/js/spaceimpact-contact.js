@@ -6,9 +6,9 @@
  * way the object class selects between ignoring, picking up and being hit. The
  * search starts at the display-list entry after the ship's own, so objects
  * drawn before the ship (such as the terrain layer) are never found by it.
- * Not covered: what the firmware does after a hit or pickup, the other gates
- * of the routine (a level-dependent flag and a state byte at 0x10a1f0), and
- * the second search the firmware runs for the ship's own shots.
+ * The object search is also skipped when state byte 0x10a1f0 is 0x1e
+ * (set by the boss-death routine at 0x2593d6). The separate terrain test
+ * and the ship's own shots are handled elsewhere.
  *
  * Bitmaps are vertical 8-pixel pages, one byte per column, least significant
  * bit on top, exactly as the display records point to them.
@@ -64,7 +64,7 @@
   // objects: the display-list entries that follow the ship's, in list order; each has class, x, y, width,
   // height and pages. state: { mode, guard }. Returns { outcome: 'none' | 'hit' | 'pickup', object }.
   function shipContact(ship, objects, state) {
-    if (state.guard !== 0) return { outcome: 'none', object: null };
+    if (state.guard !== 0 || state.phase === 30) return { outcome: 'none', object: null };
     var found = null;
     for (var i = 0; i < objects.length && !found; i++) {
       if (collidable(objects[i].class) && boxesTouch(ship, objects[i])) found = objects[i];

@@ -102,6 +102,8 @@ test('shooting a ship-class enemy removes it, scores its points and leaves an ex
 
 test('an invulnerable, aiming player plays through all eight levels and wins', () => {
   const game = Engine.create(1);
+  // The firmware shield does not prevent terrain deaths; make this progression bot truly invulnerable.
+  game.shipContact = function () {};
   const fb = new FB(84, 48);
   const levelsStarted = [0];
   let result = null;
@@ -193,14 +195,17 @@ test('a held fire key goes on firing past the firmware\'s five repeat messages',
   const game = Engine.create(7);
   game.guard = 1e6;                       // untouchable, so that only the fire rule is observed
   let shots = 0;
+  const fire = game.fire;
+  game.fire = function (code) {
+    const before = this.weapons.shots.length;
+    fire.call(this, code);
+    shots += Math.max(0, this.weapons.shots.length - before);
+  };
   game.press('1');
-  for (let step = 0; step < 60; step++) {
-    const result = game.advance(100);
-    shots += ((result && result.events) || []).filter((event) => event === 24).length;
-  }
+  for (let step = 0; step < 60; step++) game.advance(100);
   assert.ok(shots >= 15, `a held key fired ${shots} times in 60 ticks`);
   game.release('1');
-  const quiet = [];
-  for (let step = 0; step < 12; step++) quiet.push(...(((game.advance(100) || {}).events) || []).filter((event) => event === 24));
-  assert.ok(quiet.length <= 1, 'releasing the key stops the fire');
+  const released = shots;
+  for (let step = 0; step < 12; step++) game.advance(100);
+  assert.equal(shots, released, 'releasing the key stops the fire');
 });
