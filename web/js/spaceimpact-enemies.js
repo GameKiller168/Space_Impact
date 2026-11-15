@@ -46,8 +46,8 @@
       x = Math.max(0, x - speed);
       var table = CURVE, offset = b.top === 16 ? 10 : 0;
       if (vm >= 10 && vm <= 14) { table = SMALL; offset = [35, 11, 14, 25, 18][vm - 10]; }
-      if (vm === 15) { table = FALL; offset = 18; }
-      if (vm === 16) { table = RISE; offset = 18; }
+      if (vm === 15) { table = FALL; offset = 0; }
+      if (vm === 16) { table = RISE; offset = 0; }
       o.x = x; o.y = Math.max(b.top, table[x % 84] + offset) & 255;
       return !gone(o.x);
     }
@@ -71,11 +71,26 @@
       o.x = x & 255; o.y = y & 255;
       return !gone(o.x);
     }
-    // Mode 24 also consults the terrain collision routine and shared direction.
+    if (vm === 24) {
+      // The two mini-bosses (level 3 wave 22, level 5 wave 18): one pixel left per tick up to x = 56, then up and
+      // down one pixel per tick between two limits. The limits were read from the recordings (6..37 on level 3,
+      // 7..37 on level 5); the firmware takes them from its terrain routine, which is not decoded.
+      var limits = level === 4 ? [7, 37] : [6, 37];
+      if (x > 56) { o.x = (x - 1) & 255; return true; }
+      var dir = o.dir === 1 ? 1 : -1;
+      y += dir;
+      if (y <= limits[0]) { y = limits[0]; dir = 1; } else if (y >= limits[1]) { y = limits[1]; dir = -1; }
+      o.dir = dir; o.y = y & 255;
+      return true;
+    }
     // Boss mode 23 belongs to the separate boss implementation.
     return null;
   }
 
-  ns.Enemies = { bounds: bounds, spawnY: spawnY, step: step };
+  // the movement modes this module decodes; their objects leave by their own rule (gone), not by the display edge
+  var HANDLED = { 1: 1, 2: 1, 3: 1, 4: 1, 6: 1, 7: 1, 8: 1, 10: 1, 11: 1, 12: 1, 13: 1, 14: 1, 15: 1, 16: 1, 17: 1, 18: 1, 24: 1 };
+  function handles(vm) { return HANDLED[vm] === 1; }
+
+  ns.Enemies = { bounds: bounds, spawnY: spawnY, step: step, handles: handles };
   if (typeof module === 'object' && module.exports) module.exports = ns.Enemies;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

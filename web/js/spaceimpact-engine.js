@@ -25,6 +25,7 @@
   var Render = ns.Render || (req ? require('./spaceimpact-render.js') : null);
   var Classes = ns.Classes || (req ? require('./spaceimpact-classes.js') : null);
   var Random = ns.Random || (req ? require('./spaceimpact-random.js') : null);
+  var Enemies = ns.Enemies || (req ? require('./spaceimpact-enemies.js') : null);
   var Text = common.Text || (req ? require('./text.js') : null);
 
   var TICK_MS = 100, MAX_ACC = 1000;
@@ -66,12 +67,11 @@
   function spawnWave(game, record) {
     var count = record[0], cls = record[1], spacing = record[2], speed = record[3], vm = record[4], fixedY = record[6], range = record[8], hp = record[9];
     for (var i = 0; i < count; i++) {
-      var y = fixedY;
-      if (y === 0) y = PLAYFIELD_TOP + (range > 0 ? randomInt(game, range + 1) : 0);
       var boss = Classes.isBoss(cls);
+      var y = Enemies.spawnY(record, game.level, sizeOf(cls).h, fixedY === 63 ? Random.spawn(game.rng) : 0);
       if (boss) y = Math.max(PLAYFIELD_TOP, Math.min(y, 48 - sizeOf(cls).h));
       var object = addObject(game, cls, 84 + spacing * i, y, { hp: Math.max(1, hp), vm: vm, speed: speed, y0: y,
-        phase: randomInt(game, 48), dir: (cls & 1) ? -1 : 1, stop: boss ? Classes.stopX(cls) : 0 });
+        phase: 0, dir: vm === 24 ? -1 : (cls & 1) ? -1 : 1, stop: boss ? Classes.stopX(cls) : 0 });
       if (object && boss) game.bossSeen = true;
     }
   }
@@ -102,6 +102,12 @@
       object.y += object.dir;
       if (object.y <= PLAYFIELD_TOP) { object.y = PLAYFIELD_TOP; object.dir = 1; }
       if (object.y >= bottom) { object.y = bottom; object.dir = -1; }
+      return;
+    }
+    var decoded = Enemies.step(object, game.level, game.ship.y);
+    if (decoded !== null) {
+      if (object.x > 127) object.x -= 256;            // the display record holds x as a byte, the picture is drawn with it signed
+      if (decoded === false) object.gone = true;
       return;
     }
     if (object.vm === 7 && object.x <= 42 && object.held < 60) {      // stop, sweep down and up, then go on
@@ -225,8 +231,10 @@
         }
       }
       this.objects = this.objects.filter(function (o) {
+        if (o.gone) return false;
         if (o.dead) return o.dead <= ENEMY_EXPLOSION.length;
         if (Classes.isBoss(o.cls)) return true;
+        if (o.cls !== CLASS_BULLET && Enemies.handles(o.vm)) return true;      // the decoded modes remove their objects themselves
         return o.x + (o.cls === CLASS_BULLET ? 2 : 0) >= 0;
       });
       // the ship's shots move first, then the held keys act

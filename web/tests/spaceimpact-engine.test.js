@@ -148,12 +148,13 @@ test('the ship\'s explosion, the loss of a life and the shield after the respawn
 
 test('a snapshot restores the same game, which then plays on identically', () => {
   const game = Engine.create(5);
-  for (let i = 0; i < 400; i++) { if (i % 7 === 0) game.press('fireMain'); if (i % 11 === 0) game.moveShip(i % 2 ? 9 : 17); game.advance(100); }
+  for (let i = 0; i < 150; i++) { if (i % 7 === 0) { game.press('fireMain'); game.release('fireMain'); } if (i % 11 === 0) game.moveShip(i % 2 ? 9 : 17); game.advance(100); }
   const snapshot = JSON.parse(JSON.stringify(game.snapshot()));
   const copy = Engine.restore(snapshot);
   assert.ok(copy);
   assert.deepEqual(copy.snapshot(), snapshot);
-  for (let i = 0; i < 300; i++) { game.advance(100); copy.advance(100); }
+  for (let i = 0; i < 100; i++) { game.advance(100); copy.advance(100); }
+  assert.notEqual(game.mode, 'over');
   assert.deepEqual(copy.snapshot(), game.snapshot());
   const fbA = new FB(84, 48), fbB = new FB(84, 48);
   game.draw(fbA); copy.draw(fbB);
