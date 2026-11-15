@@ -5,10 +5,8 @@
  * frames of a class are consecutive descriptors. `frames` below are those descriptor indexes, read from the running
  * firmware. A class with two frames toggles every tick, a boss has four (two images, each shown for two ticks).
  *
- * `points` and `fire` are measured from recorded firmware runs, not decoded: points are the score the firmware added
- * when a class was shot (only classes seen shot are listed; other classes use the default), `fire` is the share of
- * on-screen ticks on which that class released a shot. Real firing is irregular, with bursts, and its rule is not
- * decoded; this is only the average. Vertical movement is also approximated, see spaceimpact-engine.js.
+ * Ordinary main shots score 5 for non-fatal damage and 10 for a kill; the enemy bullet class suppresses points (object template
+ * at 0x3131bc). Boss points and `fire` (the average shot rate of the bosses, not decoded yet) remain estimates.
  */
 (function (root) {
   'use strict';
@@ -25,7 +23,7 @@
   };
   var BOSSES = { 7: true, 18: true, 19: true, 20: true, 23: true, 24: true, 25: true, 34: true };
   var PICKUPS = { 17: true, 33: true };
-  var POINTS = { 4: 5, 6: 5, 14: 5, 15: 5, 16: 5, 21: 5 };
+  var POINTS = { 4: 0 };
   var FIRE = { 7: 0.02, 11: 0.01, 14: 0.005, 15: 0.008, 16: 0.004, 18: 0.03, 19: 0.036, 20: 0.042, 23: 0.064, 24: 0.035,
     25: 0.018, 26: 0.02, 27: 0.022, 29: 0.006, 30: 0.011, 31: 0.011, 34: 0.03 };
 
@@ -42,6 +40,7 @@
 
   ns.Classes = {
     known: known, frames: frames, points: points,
+    noScore: function (cls) { return cls === 4 || cls === 17; },
     isBoss: function (cls) { return !!BOSSES[cls]; },
     isPickup: function (cls) { return !!PICKUPS[cls]; },
     fireRate: function (cls) { return Object.prototype.hasOwnProperty.call(FIRE, cls) ? FIRE[cls] : 0; },
