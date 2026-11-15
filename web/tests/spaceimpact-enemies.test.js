@@ -35,7 +35,7 @@ test('every ordinary wave of every level moves exactly as in the firmware', () =
     Engine.startLevel(game, c.level - 1);
     game.rng = Random.create(fixture.seed);
     game.ship.y = c.ship_y;
-    game.guard = 1e9;
+    game.guard = 1e9; game.terrainContact = () => false;
     const records = Levels.allLevels[c.level - 1].waveRecords;
     game.waveIndex = c.wave - 1;
     game.wait = 1;

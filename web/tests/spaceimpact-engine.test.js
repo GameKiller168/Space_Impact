@@ -106,7 +106,7 @@ test('an invulnerable, aiming player plays through all eight levels and wins', (
   const levelsStarted = [0];
   let result = null;
   for (let tick = 0; tick < 20000 && !(result && result.ended); tick++) {
-    game.guard = 30;
+    game.guard = 30; game.terrainContact = () => false;
     const target = game.objects.find((object) => !object.dead && object.x < 84 && object.cls !== 4 && !Classes.isPickup(object.cls));
     if (target && game.mode === 'play') {
       const want = target.y + Math.floor(target.h / 2) - 3;
