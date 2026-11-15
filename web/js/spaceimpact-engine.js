@@ -20,10 +20,14 @@
   var LevelData = root.SpaceImpactLevels || (req ? require('./spaceimpact-levels.js') : null);
   var Terrain = root.SpaceImpactTerrain || (req ? require('./spaceimpact-terrain.js') : null);
   var Contact = ns.Contact || (req ? require('./spaceimpact-contact.js') : null);
+  var TerrainContact = ns.TerrainContact || (req ? require('./spaceimpact-terrain-contact.js') : null);
   var Controls = ns.Controls || (req ? require('./spaceimpact-controls.js') : null);
   var Weapons = ns.Weapons || (req ? require('./spaceimpact-weapons.js') : null);
   var Render = ns.Render || (req ? require('./spaceimpact-render.js') : null);
   var Classes = ns.Classes || (req ? require('./spaceimpact-classes.js') : null);
+  var Random = ns.Random || (req ? require('./spaceimpact-random.js') : null);
+  var Enemies = ns.Enemies || (req ? require('./spaceimpact-enemies.js') : null);
+  var Fire = ns.Fire || (req ? require('./spaceimpact-fire.js') : null);
   var Text = common.Text || (req ? require('./text.js') : null);
 
   var TICK_MS = 100, MAX_ACC = 1000;
@@ -31,7 +35,7 @@
   var SHIP_FRAME = 0, HEART = 79, SHIELD_FRAMES = [56, 57], BULLET_FRAME = 17;
   var SHIP_EXPLOSION = [18, 18, 19, 18, 21];          // descriptor per tick, then the life is lost (firmware recovery stages)
   var ENEMY_EXPLOSION = [18, 19, 20, 21];
-  var OVER_TICKS = 12, OVER_TEXT_TICKS = 28, WON_TICKS = 40, REPEAT_AFTER = 3, MAX_OBJECTS = 80;
+  var OVER_TICKS = 12, WON_TICKS = 40, REPEAT_AFTER = 3, MAX_OBJECTS = 80;
   var PLAYFIELD_TOP = 6, PLAYFIELD_BOTTOM = 41, CLASS_BULLET = 4, CLASS_EXPLOSION = 2;
   var images = Assets.images, pagesCache = {};
 
@@ -42,13 +46,8 @@
   }
 
   // ---- random numbers ----------------------------------------------------------------------------------------------
-  function nextRandom(game) {
-    var t = (game.rng = (game.rng + 0x6D2B79F5) | 0);
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  }
-  function randomInt(game, n) { return Math.floor(nextRandom(game) * n); }
+  function nextRandom(game) { return Random.effects(game.rng) / 0xfff1; }
+  function randomInt(game, n) { return Random.spawn(game.rng) % n; }
 
   // ---- objects -----------------------------------------------------------------------------------------------------
   function frameOf(object) {
@@ -61,7 +60,7 @@
     if (game.objects.length >= MAX_OBJECTS) return null;
     var size = sizeOf(cls);
     var object = { id: game.nextId++, cls: cls, x: x, y: y, w: size.w, h: size.h, hp: 1, age: 0, vm: 6, speed: 0,
-      y0: y, phase: 0, dir: 1, dead: 0, stop: 0, held: 0 };
+      y0: y, phase: 0, dir: 1, dead: 0, stop: 0, held: 0, div: 0, ammo: 0 };
     for (var key in extra) if (Object.prototype.hasOwnProperty.call(extra, key)) object[key] = extra[key];
     game.objects.push(object);
     return object;
@@ -70,12 +69,11 @@
   function spawnWave(game, record) {
     var count = record[0], cls = record[1], spacing = record[2], speed = record[3], vm = record[4], fixedY = record[6], range = record[8], hp = record[9];
     for (var i = 0; i < count; i++) {
-      var y = fixedY;
-      if (y === 0) y = PLAYFIELD_TOP + (range > 0 ? randomInt(game, range + 1) : 0);
       var boss = Classes.isBoss(cls);
+      var y = Enemies.spawnY(record, game.level, sizeOf(cls).h, fixedY === 63 ? Random.spawn(game.rng) : 0);
       if (boss) y = Math.max(PLAYFIELD_TOP, Math.min(y, 48 - sizeOf(cls).h));
       var object = addObject(game, cls, 84 + spacing * i, y, { hp: Math.max(1, hp), vm: vm, speed: speed, y0: y,
-        phase: randomInt(game, 48), dir: (cls & 1) ? -1 : 1, stop: boss ? Classes.stopX(cls) : 0 });
+        phase: 0, dir: vm === 24 ? -1 : (cls & 1) ? -1 : 1, stop: boss ? Classes.stopX(cls) : 0, div: record[7], ammo: record[8] });
       if (object && boss) game.bossSeen = true;
     }
   }
@@ -108,6 +106,12 @@
       if (object.y >= bottom) { object.y = bottom; object.dir = -1; }
       return;
     }
+    var decoded = Enemies.step(object, game.level, game.ship.y);
+    if (decoded !== null) {
+      if (object.x > 127) object.x -= 256;            // the display record holds x as a byte, the picture is drawn with it signed
+      if (decoded === false) object.gone = true;
+      return;
+    }
     if (object.vm === 7 && object.x <= 42 && object.held < 60) {      // stop, sweep down and up, then go on
       object.held += 1;
       var phase = object.held;
@@ -130,7 +134,7 @@
   }
 
   function newState(seed) {
-    return { v: 1, rng: seed | 0, level: 0, tick: 1, scroll: 0, wavesLeft: 0, wait: 0, waveIndex: 0, bossSeen: false,
+    return { v: 1, rng: Random.create(seed), level: 0, tick: 1, scroll: 0, wavesLeft: 0, wait: 0, waveIndex: 0, bossSeen: false,
       mode: 'play', modeTick: 0, ship: { x: START_X, y: START_Y }, lives: START_LIVES, score: 0, guard: SHIELD_TICKS,
       weapons: Weapons.initial(), objects: [], nextId: 1, extra: [] };
   }
@@ -157,7 +161,9 @@
 
   Game.prototype.moveShip = function (code) {
     if (this.mode !== 'play') return;
-    var bounds = { left: Controls.INITIAL_BOUNDS.left, right: Controls.INITIAL_BOUNDS.right, top: Controls.INITIAL_BOUNDS.top, bottom: Controls.INITIAL_BOUNDS.bottom };
+    var upperTerrain = this.level === 4 || this.level === 5;
+    var bounds = { left: Controls.INITIAL_BOUNDS.left, right: Controls.INITIAL_BOUNDS.right,
+      top: upperTerrain ? 1 : 6, bottom: upperTerrain ? 35 : 41 };
     this.ship = Controls.move(this.ship, code, bounds);
   };
 
@@ -184,7 +190,7 @@
   Game.prototype.flush = function () {
     var out = {};
     if (this.events.length) { out.events = this.events; this.events = []; }
-    if (this.result) { out.ended = true; out.score = this.result.score; }
+    if (this.result) { out.ended = true; out.score = this.result.score; if (this.result.won) out.won = true; }
     return out.events || out.ended ? out : null;
   };
 
@@ -223,14 +229,26 @@
         if (object.dead) { object.dead += 1; continue; }
         object.age += 1;
         moveObject(this, object);
-        var rate = Classes.fireRate(object.cls);
-        if (rate && object.x <= 79 && object.x + object.w > 0 && nextRandom(this) < rate && this.countBullets() < 14) {
-          addObject(this, CLASS_BULLET, object.x - 5, object.y + Math.floor(object.h / 2), { speed: 3 });
+        if (object.cls === CLASS_BULLET) {
+          /* bullets do not shoot */
+        } else if (Enemies.handles(object.vm)) {
+          // an ordinary enemy shoots by the firmware's rule: the movement mode says when the check runs
+          if (!object.gone && (object.shoot === 2 || (object.shoot === 1 && Fire.check(this.rng, object)))) {
+            var shot = Fire.shoot(object);
+            if (shot) addObject(this, CLASS_BULLET, shot.x, shot.y, { speed: 3 });
+          }
+        } else {
+          var rate = Classes.fireRate(object.cls);
+          if (rate && object.x <= 79 && object.x + object.w > 0 && nextRandom(this) < rate && this.countBullets() < 14) {
+            addObject(this, CLASS_BULLET, object.x - 5, object.y + Math.floor(object.h / 2), { speed: 3 });
+          }
         }
       }
       this.objects = this.objects.filter(function (o) {
+        if (o.gone) return false;
         if (o.dead) return o.dead <= ENEMY_EXPLOSION.length;
         if (Classes.isBoss(o.cls)) return true;
+        if (o.cls !== CLASS_BULLET && Enemies.handles(o.vm)) return true;      // the decoded modes remove their objects themselves
         return o.x + (o.cls === CLASS_BULLET ? 2 : 0) >= 0;
       });
       // the ship's shots move first, then the held keys act
@@ -257,7 +275,12 @@
       if (!Object.prototype.hasOwnProperty.call(this.held, key)) continue;
       this.held[key] += 1;
       if (MOVE_REPEAT[key] && this.held[key] >= REPEAT_AFTER) this.moveShip(MOVE_REPEAT[key]);
-      else if (FIRE_REPEAT[key]) this.fire(FIRE_REPEAT[key]);
+      else if (FIRE_REPEAT[key]) {
+        this.fire(FIRE_REPEAT[key]);
+        // The firmware accepts five repeat messages per press (counter 0x10a202); a held key goes on firing here
+        // with a fresh press message, which restarts that counter. Holding fire is how the game is played.
+        if (this.weapons.repeats >= 5) this.fire(FIRE[key]);
+      }
     }
   };
 
@@ -302,27 +325,16 @@
         return;
       }
     }
-    if (this.guard === 0 && this.level >= 1 && this.terrainContact()) this.beginDying();
+    if (this.terrainContact()) this.beginDying();
   };
 
   Game.prototype.terrainContact = function () {
-    var bytes = Terrain.renderBytes(this.level + 1, this.scroll), originY = Terrain.originY(this.level + 1);
-    var rows = image(SHIP_FRAME).rows;
-    for (var r = 0; r < rows.length; r++) {
-      var ty = this.ship.y + r - originY;
-      if (ty < 0 || ty >= 16) continue;
-      for (var c = 0; c < rows[r].length; c++) {
-        if (rows[r][c] !== '#') continue;
-        var tx = this.ship.x + c;
-        if (tx >= 0 && tx < 84 && (bytes[(ty >> 3) * 84 + tx] & (1 << (ty & 7)))) return true;
-      }
-    }
-    return false;
+    return TerrainContact.hits(this.level + 1, this.scroll, { x: this.ship.x, y: this.ship.y,
+      width: image(SHIP_FRAME).width, height: image(SHIP_FRAME).height, pages: pagesOf(SHIP_FRAME) });
   };
 
   Game.prototype.beginDying = function () {
     this.mode = 'dying'; this.modeTick = 0;
-    this.held = {};
     this.emit(23); this.emit('vibration');
   };
 
@@ -339,7 +351,6 @@
   Game.prototype.beginClear = function () {
     this.mode = 'clear'; this.modeTick = 0;
     this.objects = [];
-    this.held = {};
   };
 
   Game.prototype.stepClear = function () {
@@ -355,16 +366,14 @@
 
   Game.prototype.stepEnd = function () {
     this.modeTick += 1;
-    if (this.mode === 'over' && this.modeTick >= OVER_TICKS + OVER_TEXT_TICKS) this.result = { score: this.score };
-    if (this.mode === 'won' && this.modeTick >= WON_TICKS) this.result = { score: this.score + 1000 };
+    if (this.mode === 'over' && this.modeTick >= OVER_TICKS) this.result = { score: this.score };
+    if (this.mode === 'won' && this.modeTick >= WON_TICKS) this.result = { score: this.score + 1000, won: true };
   };
 
   // ---- drawing -----------------------------------------------------------------------------------------------------
   Game.prototype.draw = function (fb) {
     fb.clear();
     var i, o, bytes, originY, bit;
-    if (this.mode === 'over' && this.modeTick >= OVER_TICKS) { this.drawNote(fb, ['GAME OVER', String(this.score)]); return fb; }
-    if (this.mode === 'won') { this.drawNote(fb, ['YOU WON!', String(this.score + 1000)]); return fb; }
     if (this.level >= 0) {
       bytes = Terrain.renderBytes(this.level + 1, this.scroll); originY = Terrain.originY(this.level + 1);
       for (var page = 0; page < 2; page++) for (var x = 0; x < 84; x++) {
@@ -406,7 +415,7 @@
     out.ship = { x: this.ship.x, y: this.ship.y };
     out.weapons = { cooldown: this.weapons.cooldown, repeats: this.weapons.repeats, shots: this.weapons.shots.map(function (s) { return { x: s.x, y: s.y }; }) };
     out.objects = this.objects.map(function (o) {
-      return { id: o.id, cls: o.cls, x: o.x, y: o.y, hp: o.hp, age: o.age, vm: o.vm, speed: o.speed, y0: o.y0, phase: o.phase, dir: o.dir, dead: o.dead, stop: o.stop, held: o.held };
+      return { id: o.id, cls: o.cls, x: o.x, y: o.y, hp: o.hp, age: o.age, vm: o.vm, speed: o.speed, y0: o.y0, phase: o.phase, dir: o.dir, dead: o.dead, stop: o.stop, held: o.held, div: o.div, ammo: o.ammo };
     });
     return JSON.parse(JSON.stringify(out));
   };
@@ -416,7 +425,7 @@
   function restore(snapshot) {
     var s = snapshot, i, o;
     if (!s || typeof s !== 'object' || s.v !== 1) return null;
-    if (!isInt(s.rng, -2147483648, 2147483647) || !isInt(s.level, 0, LevelData.allLevels.length - 1) || !isInt(s.tick, 1, 1e9) ||
+    if (!Random.valid(s.rng) || !isInt(s.level, 0, LevelData.allLevels.length - 1) || !isInt(s.tick, 1, 1e9) ||
         !isInt(s.scroll, 0, 511) || !isInt(s.wavesLeft, -100, 100) || !isInt(s.wait, -100, 1000) || !isInt(s.waveIndex, 0, LevelData.allLevels[s.level].waveRecords.length) ||
         typeof s.bossSeen !== 'boolean' || ['play', 'dying', 'clear', 'over', 'won'].indexOf(s.mode) < 0 || !isInt(s.modeTick, 0, 1e6) ||
         !isInt(s.lives, 0, MAX_LIVES) || !isInt(s.score, 0, 1e9) || !isInt(s.guard, 0, SHIELD_TICKS) || !isInt(s.nextId, 1, 1e9)) return null;
@@ -429,16 +438,18 @@
       o = s.objects[i];
       if (!o || !isInt(o.id, 1, 1e9) || !isInt(o.cls, 0, 255) || !Classes.known(o.cls) || !isInt(o.x, -200, 400) || !isInt(o.y, -50, 100) ||
           !isInt(o.hp, -100, 255) || !isInt(o.age, 0, 1e9) || !isInt(o.vm, 0, 255) || !isInt(o.speed, 0, 255) || !isInt(o.y0, -50, 100) ||
-          !isInt(o.phase, 0, 255) || (o.dir !== 1 && o.dir !== -1) || !isInt(o.dead, 0, 20) || !isInt(o.stop, 0, 255) || !isInt(o.held, 0, 1e6)) return null;
+          !isInt(o.phase, 0, 255) || (o.dir !== 1 && o.dir !== -1) || !isInt(o.dead, 0, 20) || !isInt(o.stop, 0, 255) || !isInt(o.held, 0, 1e6) ||
+          !isInt(o.div, 0, 255) || !isInt(o.ammo, 0, 255)) return null;
     }
     var game = new Game({});
     for (i = 0; i < KEYS.length; i++) game[KEYS[i]] = s[KEYS[i]];
+    game.rng = { spawn: s.rng.spawn, effects: s.rng.effects };
     game.ship = { x: s.ship.x, y: s.ship.y };
     game.weapons = { cooldown: w.cooldown, repeats: w.repeats, shots: w.shots.map(function (shot) { return { x: shot.x, y: shot.y }; }) };
     game.objects = s.objects.map(function (obj) {
       var size = sizeOf(obj.cls);
       return { id: obj.id, cls: obj.cls, x: obj.x, y: obj.y, w: size.w, h: size.h, hp: obj.hp, age: obj.age, vm: obj.vm, speed: obj.speed,
-        y0: obj.y0, phase: obj.phase, dir: obj.dir, dead: obj.dead, stop: obj.stop, held: obj.held };
+        y0: obj.y0, phase: obj.phase, dir: obj.dir, dead: obj.dead, stop: obj.stop, held: obj.held, div: obj.div, ammo: obj.ammo };
     });
     game.extra = [];
     return game;

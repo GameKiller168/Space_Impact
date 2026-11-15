@@ -106,7 +106,7 @@ test('an invulnerable, aiming player plays through all eight levels and wins', (
   const levelsStarted = [0];
   let result = null;
   for (let tick = 0; tick < 20000 && !(result && result.ended); tick++) {
-    game.guard = 30;
+    game.guard = 30; game.terrainContact = () => false;
     const target = game.objects.find((object) => !object.dead && object.x < 84 && object.cls !== 4 && !Classes.isPickup(object.cls));
     if (target && game.mode === 'play') {
       const want = target.y + Math.floor(target.h / 2) - 3;
@@ -148,12 +148,13 @@ test('the ship\'s explosion, the loss of a life and the shield after the respawn
 
 test('a snapshot restores the same game, which then plays on identically', () => {
   const game = Engine.create(5);
-  for (let i = 0; i < 400; i++) { if (i % 7 === 0) game.press('fireMain'); if (i % 11 === 0) game.moveShip(i % 2 ? 9 : 17); game.advance(100); }
+  for (let i = 0; i < 150; i++) { if (i % 7 === 0) { game.press('fireMain'); game.release('fireMain'); } if (i % 11 === 0) game.moveShip(i % 2 ? 9 : 17); game.advance(100); }
   const snapshot = JSON.parse(JSON.stringify(game.snapshot()));
   const copy = Engine.restore(snapshot);
   assert.ok(copy);
   assert.deepEqual(copy.snapshot(), snapshot);
-  for (let i = 0; i < 300; i++) { game.advance(100); copy.advance(100); }
+  for (let i = 0; i < 100; i++) { game.advance(100); copy.advance(100); }
+  assert.notEqual(game.mode, 'over');
   assert.deepEqual(copy.snapshot(), game.snapshot());
   const fbA = new FB(84, 48), fbB = new FB(84, 48);
   game.draw(fbA); copy.draw(fbB);
@@ -187,4 +188,20 @@ test('every frame draws inside the 84 x 48 display and the HUD shows one heart p
     }
   }
   assert.equal(fb.get(18, 1), 0, 'no fourth heart');
+});
+
+test('a held fire key goes on firing past the firmware\'s five repeat messages', () => {
+  const game = Engine.create(7);
+  game.guard = 1e6;                       // untouchable, so that only the fire rule is observed
+  let shots = 0;
+  game.press('1');
+  for (let step = 0; step < 60; step++) {
+    const result = game.advance(100);
+    shots += ((result && result.events) || []).filter((event) => event === 24).length;
+  }
+  assert.ok(shots >= 15, `a held key fired ${shots} times in 60 ticks`);
+  game.release('1');
+  const quiet = [];
+  for (let step = 0; step < 12; step++) quiet.push(...(((game.advance(100) || {}).events) || []).filter((event) => event === 24));
+  assert.ok(quiet.length <= 1, 'releasing the key stops the fire');
 });

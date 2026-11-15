@@ -14,6 +14,8 @@
   var Text = common.Text || (req ? require('./text.js') : null);
   var Framebuffer = common.Framebuffer || (req ? require('./framebuffer.js') : null);
   var Storage = ns.Storage || (req ? require('./spaceimpact-storage.js') : null);
+  var Texts = ns.Texts || (req ? require('./spaceimpact-texts.js') : null);
+  var NOTE_MS = 3070;                // how long a note stays when no key is pressed (as the games menu of the phone does)
 
   function validGame(g) {
     return !!g && typeof g.advance === 'function' && typeof g.press === 'function' &&
@@ -29,7 +31,7 @@
     this.onLanguageChange = options.onLanguageChange || null;
     this.onEvent = options.onEvent || null;
     this.fb = new Framebuffer(84, 48);
-    this.mode = 'menu'; this.kind = 'main'; this.game = null; this.paused = false;
+    this.mode = 'menu'; this.kind = 'main'; this.game = null; this.paused = false; this.notes = null; this.note = null; this.noteLeft = 0;
     this.visible = true; this.skipNextAdvance = false; this.held = new Set();
     this.states = { main: { s: 0, c: 0 }, options: { s: 0, c: 0 }, language: { s: 0, c: 0 } };
     this.page = 0;
@@ -39,7 +41,21 @@
       if (saved) this.restore(saved, { restoreSettings: false });
     }
   }
-  Phone.prototype.t = function (key, params) { return I18n.text(key, this.store.language, params); };
+  // Labels and notes come from the firmware's own text table where that language has been decoded, else from the shared
+  // (estimated) translations of the page.
+  Phone.prototype.t = function (key, params) {
+    var fw = Texts ? Texts.label(key, I18n.resolve(this.store.language)) : null;
+    if (fw !== null) return fw.replace(/%N/g, params && params.n !== undefined ? String(params.n) : '');
+    return I18n.text(key, this.store.language, params);
+  };
+  // Notes are shown one after the other; a key press or the time moves on to the next, and after the last one the main menu returns.
+  Phone.prototype.showNotes = function (list) {
+    this.notes = list.slice(); this.nextNote();
+  };
+  Phone.prototype.nextNote = function () {
+    if (!this.notes || !this.notes.length) { this.notes = null; this.note = null; this.showMenu('main'); return; }
+    this.note = this.notes.shift(); this.noteLeft = NOTE_MS; this.mode = 'note';
+  };
   Phone.prototype.changed = function () { try { if (typeof this.onChange === 'function') this.onChange(); } catch (ignore) {} };
   Phone.prototype.inGame = function () { return this.mode === 'game' && this.visible; };
   Phone.prototype.entries = function () {
@@ -77,7 +93,7 @@
         this.showMenu('language');
       } else this.store[entry.id] = !this.store[entry.id];
     } else if (entry.id === 'options') this.showMenu('options');
-    else if (entry.id === 'topScore') this.mode = 'topScore';
+    else if (entry.id === 'topScore') this.showNotes([{ key: 'TOP_SCORE_NOTE', params: { n: this.store.top } }]);
     else if (entry.id === 'instructions') {
       if (typeof this.instructions !== 'function' || !this.instructions(this.store.language)) return 'instructions';
       this.page = 0; this.mode = 'instructions';
@@ -99,8 +115,13 @@
       }
     }
     if (result.ended !== true) return;
-    if (Number.isSafeInteger(result.score) && result.score >= 0 && result.score > this.store.top) this.store.top = result.score;
-    this.game = null; this.paused = false; this.held.clear(); this.showMenu('main');
+    var score = Number.isSafeInteger(result.score) && result.score >= 0 ? result.score : 0, record = score > this.store.top;
+    if (record) this.store.top = score;
+    this.game = null; this.paused = false; this.held.clear();
+    var notes = [];
+    if (result.won) notes.push({ key: 'YOU_WON' });
+    notes.push({ key: record ? 'GAME_OVER_TOP' : 'GAME_OVER_SCORE', params: { n: score } });
+    this.showNotes(notes);
   };
   Phone.prototype.press = function (key) {
     if (!this.visible) return;
@@ -111,7 +132,7 @@
       } else { this.held.add(key); this.result(this.game.press(key)); }
       this.changed(); return;
     }
-    if (this.mode === 'topScore') { this.showMenu('main'); return; }
+    if (this.mode === 'note') { this.nextNote(); this.changed(); return; }
     if (this.mode === 'instructions') {
       if (key === 'c') this.showMenu('main');
       else if (key === 'select') this.page = (this.page + 1) % Screens.instructionPages(this.instructions(this.store.language)).length;
@@ -146,6 +167,7 @@
   Phone.prototype.advance = function (ms) {
     if (!this.visible) return;
     if (this.skipNextAdvance) { this.skipNextAdvance = false; return; }
+    if (this.mode === 'note' && Number.isFinite(ms) && ms > 0) { this.noteLeft -= ms; if (this.noteLeft <= 0) { this.nextNote(); this.changed(); } return; }
     if (this.inGame() && Number.isFinite(ms) && ms > 0) { this.result(this.game.advance(ms)); this.changed(); }
   };
   Phone.prototype.snapshot = function () {
@@ -170,7 +192,7 @@
   Phone.prototype.draw = function () {
     Text.setFontPack(I18n.fontPack(this.store.language));
     if (this.mode === 'game') { this.game.draw(this.fb); return this.fb; }
-    if (this.mode === 'topScore') return Screens.drawNote(this.fb, Screens.noteLines(this.t('TOP_SCORE_NOTE', { n: this.store.top })));
+    if (this.mode === 'note') return Screens.drawNote(this.fb, Screens.noteLines(this.t(this.note.key, this.note.params), {}));
     if (this.mode === 'instructions') return Screens.drawInstructions(this.fb, this.page, this.instructions(this.store.language), this.t('NEXT'), I18n.resolve(this.store.language) !== 'en');
     var entries = this.entries(), state = this.states[this.kind];
     return Screens.drawMenu(this.fb, { items: entries.map(function (e) { return e.label; }),

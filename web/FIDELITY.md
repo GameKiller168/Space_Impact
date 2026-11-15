@@ -1,6 +1,6 @@
 # Space Impact fidelity ledger
 
-Status: **work in progress; not a v1.0 release**. The current page still uses the Snake II engine. The existing Snake II tests do not validate Space Impact behavior.
+Status: **work in progress**. The page runs the Space Impact engine (v0.2, see the last section for what is verified and what is estimated).
 
 ## Evidence source
 
@@ -52,10 +52,22 @@ The English PPM help text and the actual handler at `0x257e1c` agree: keys `8` a
 - Add Space Impact-specific oracle tests and run all eight levels through completion.
 - Build, review, commit, push, and tag a release after those checks pass.
 
-## Engine v0.1 (`spaceimpact-engine.js`, playable on the page)
+## Engine v0.2 (`spaceimpact-engine.js`, playable on the page)
 
-Verified against the firmware (tests in `web/tests`): the 100 ms tick; the wave schedule of all eight levels (first wave 20 ticks after level start, then the record's delay byte; fixture `spaceimpact-schedule.json`, recorded with `tools/spaceimpact_record_schedule.py`); first-wave spawn positions and straight flight; ship movement and main shot; ship contact with enemies (`spaceimpact-contact.js`); explosion, respawn and shield; terrain compositing; the class-to-sprite table; hit points from the wave records.
+Verified against the running firmware (tests in `web/tests`, fixtures recorded with the tools in `tools/`):
 
-Approximated, not verified: enemy vertical movement; enemy fire rate and origin; boss routines; points for classes never seen shot; pickup effect (+1 life up to 5, else +50); terrain deaths on levels 2-8 (pixel overlap of ship and terrain ink; the firmware test at `0x2e7036` is not decoded); the final boss's turrets (omitted); the level-end sequence motion; bonus weapons (keys 4/6 do nothing). Held fire and movement keys are cleared on death and level change, so the player must press fire again.
+| What | Evidence |
+| --- | --- |
+| 100 ms tick; wave schedule of all eight levels (first wave 20 ticks after the level starts, then the record's delay byte) | `spaceimpact-schedule.json` |
+| Ordinary enemies: every wave record of all eight levels (159 isolated records, ship parked at three heights) puts every enemy on the same pixel on every tick: spawn position, random start height, speed, all movement modes (straight, curve, small wave, rise, fall, dive, climb, stop-and-sweep, the two mini-bosses) and the removal at the left edge | `spaceimpact-enemies.json`, `spaceimpact-enemies.test.js` |
+| The firmware's two random generators (wave heights; effects and firing) | `spaceimpact-random.js`, recorded draws |
+| Enemy shooting: which tick runs the shot check for each movement mode, the divisor in wave record byte 7 against a draw, ammunition in byte 8 (bosses need none), shot start `x - 2`, `y + height / 2`, bullet speed 3. 133 of 159 records match tick by tick including every random draw | `spaceimpact-enemy-fire.json`, `spaceimpact-enemy-fire.test.js` |
+| Ship movement and main shot; ship contact with enemies; explosion, respawn and shield | existing fixtures |
+| Terrain compositing; class-to-sprite table; hit points from the wave records | existing fixtures |
+| Texts: the labels and notes of the five PPM B languages and the instruction text of ten languages come from the firmware's text tables | `tools/spaceimpact_generate_texts.py` |
 
-Play-test (browser, 2026-11): menu, new game, movement, fire, death and respawn, game over, pause/continue, reload restore and mobile layout work; a scripted invulnerable bot reaches level 8 without console errors. Sounds and vibration were not heard or felt in this test. Nothing here has been compared with a real phone.
+Known differences inside the shooting test (26 records stop early in `spaceimpact-enemy-fire.json`): a bullet that reaches the parked ship or its start shield, the ship object itself missing from the recording, and whether a mini-boss's bullet is moved on the tick it is made.
+
+Approximated, not verified: boss routines (movement, attacks, hit points feedback, death), the level-end sequence, the final boss's turrets, points per class, pickup effect (+1 life up to 5, else +50), the shield's effect on touching enemies and bullets, terrain deaths on levels 2-8 (a decoded module is present, see `spaceimpact-terrain-contact.js`, but its recording is not yet part of the tests), bonus weapons (keys 4/6 do nothing). A held fire key keeps firing (the firmware accepts five repeat messages per press; the page then sends a fresh press); held keys survive a lost life.
+
+Play-test (browser, 2026-11): menu, new game, movement, fire, death and respawn, game over note, pause/continue, reload restore and mobile layout work; a scripted invulnerable bot reaches level 8 without console errors. Sounds and vibration were not heard or felt in this test. Nothing here has been compared with a real phone.

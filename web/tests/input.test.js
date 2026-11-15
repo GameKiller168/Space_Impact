@@ -238,3 +238,68 @@ test('keyboard down class and blur release held keys', () => {
     } finally { if (had) globalThis.window = old; else delete globalThis.window; }
   });
 });
+
+test('the on-screen pad: several fingers press several keys at once, and a sliding finger moves between keys', () => {
+  withPage((doc) => {
+    const handlers = {};
+    const mk = (key) => {
+      const classes = new Set();
+      const b = { key, classes, getAttribute: (n) => (n === 'data-key' ? key : null), classList: { add: (c) => classes.add(c), remove: (c) => classes.delete(c) } };
+      b.closest = () => b;
+      return b;
+    };
+    const one = mk('1'), two = mk('2'), three = mk('3');
+    const pad = { addEventListener(type, f) { handlers[type] = f; }, contains: () => true };
+    let under = null;
+    doc.elementFromPoint = () => under;
+    const got = [], released = [];
+    Input.attach({ inGame: () => true, onPress: (k) => got.push(k), onRelease: (k) => released.push(k), pad });
+    const down = (b, id) => handlers.pointerdown({ target: b, pointerId: id, preventDefault() {} });
+    down(one, 1);
+    down(two, 2);
+    down(three, 3);
+    assert.deepEqual(got, ['1', '2', '3']);
+    assert.ok(one.classes.has('down') && two.classes.has('down') && three.classes.has('down'));
+    handlers.pointerup({ pointerId: 2 });
+    assert.deepEqual(released, ['2']);
+    assert.ok(one.classes.has('down') && three.classes.has('down') && !two.classes.has('down'));
+    // finger 1 slides from key 1 onto key 2: 1 is let go, 2 is pressed again
+    under = two;
+    handlers.pointermove({ pointerId: 1, clientX: 0, clientY: 0 });
+    assert.deepEqual(released, ['2', '1']);
+    assert.deepEqual(got, ['1', '2', '3', '2']);
+    // and off the keys altogether
+    under = null;
+    handlers.pointermove({ pointerId: 1, clientX: 0, clientY: 0 });
+    assert.deepEqual(released, ['2', '1', '2']);
+    // a finger that never went down does nothing when it moves
+    under = one;
+    handlers.pointermove({ pointerId: 9, clientX: 0, clientY: 0 });
+    assert.deepEqual(got, ['1', '2', '3', '2']);
+  });
+});
+
+test('a finger that starts off the pad and slides onto it presses the key under it', () => {
+  withPage((doc) => {
+    const padHandlers = {};
+    const classes = new Set();
+    const key = { getAttribute: () => '5', classList: { add: (c) => classes.add(c), remove: (c) => classes.delete(c) } };
+    key.closest = () => key;
+    const pad = { addEventListener(t, f) { padHandlers[t] = f; }, contains: (n) => n === key };
+    let under = null;
+    doc.elementFromPoint = () => under;
+    const got = [], released = [];
+    Input.attach({ inGame: () => true, onPress: (k) => got.push(k), onRelease: (k) => released.push(k), pad });
+    doc.fire('pointerdown', { target: {}, pointerId: 4, clientX: 0, clientY: 0 });
+    assert.deepEqual(got, []);
+    under = key;
+    doc.fire('pointermove', { pointerId: 4, clientX: 1, clientY: 1 });
+    assert.deepEqual(got, ['5']);
+    under = null;
+    doc.fire('pointermove', { pointerId: 4, clientX: 2, clientY: 2 });
+    assert.deepEqual(released, ['5']);
+    under = key;
+    doc.fire('pointermove', { pointerId: 4, clientX: 1, clientY: 1 });
+    assert.deepEqual(got, ['5', '5']);
+  });
+});

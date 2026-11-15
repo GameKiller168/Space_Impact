@@ -1,28 +1,32 @@
-# Space Impact — Nokia 3310 reconstruction (v0.1)
+# Space Impact
 
-**v0.1 is playable** at https://gamekiller168.github.io/Space_Impact/ (the page is `web/`). It is a fan-made reconstruction built from data read out of the Nokia 3310 v6.39 firmware; it is **not** a verified copy and is **not** v1.0. Progress is saved in the browser's local storage.
+A fan-made recreation of the Nokia 3310 game **Space Impact** in the browser, rebuilt from data read out of the phone's own firmware (v6.39, PPM B).
 
-What is verified against the firmware: the 100 ms tick, the wave schedule of all eight levels, first-wave positions and straight flight, ship movement and main shot, ship contact, explosion/respawn/shield, the scrolling terrain compositor, the class-to-sprite table and hit points from the wave records.
+**[▶ Play v0.2 beta](https://gamekiller168.github.io/Space_Impact/)** · [What is verified](web/FIDELITY.md) · [Changelog](CHANGELOG.md)
 
-What is approximated (and only the first levels have been played carefully): enemy vertical movement, enemy fire rate and position, boss routines, points for classes never seen shot, pickup effect (+1 life up to 5, else +50), terrain deaths on levels 2-8 (pixel overlap of ship and terrain), the final boss's turrets (omitted), the level-end sequence's motion, and the bonus weapons (keys 4 and 6 do nothing). Later levels are not verified. See [web/FIDELITY.md](web/FIDELITY.md).
+> **Beta.** The ordinary enemies, their shots, the waves, the ship, the terrain and the texts follow the firmware and are checked against it by tests. The bosses, the level ends, the points, the pickups, terrain deaths and the bonus weapons (keys 4 and 6) are still estimates; an honest list is in [web/FIDELITY.md](web/FIDELITY.md). It is **not** a verified copy and not v1.0.
 
-Keys: `8`/`0` up/down, `*`/`#` back/forward, `1`/`3` fire, `C` pause/menu.
+## Play
 
-This repository is a work in progress toward a Nokia 3310 v6.39 Space Impact recreation. Do not tag it as Space Impact v1.0 until the engine and release checks are complete.
+The page is a phone: display, function keys and keypad (the look of the sister project [Snake II](https://github.com/GameKiller168/Snake_II)). It works on touch screens (several fingers at once, sliding between keys), with the keyboard, and offline once loaded (installable as an app). The game, the settings and the top score are saved in the browser.
 
-The firmware image is not included. Local analysis used the Nokia 3310 v6.39 PPM B flash supplied with the task. The actual Space Impact app is dispatcher ID 1 (`0x25a52a`); the previously investigated app ID 3/4 and `0x31adxx` images are a different game. Firmware instructions and the app's handler agree on `8`/`0` for vertical movement, `*`/`#` for horizontal movement, `1`/`3` for the main weapon and `4`/`6` for bonus weapons.
+| | Phone key | Keyboard |
+| --- | --- | --- |
+| Up / down | `8` / `0` | arrow keys or W / S |
+| Back / forward | `*` / `#` | arrow keys or A / D |
+| Main weapon (hold it to keep firing) | `1` or `3` | Space |
+| Bonus weapons (not yet implemented) | `4` or `6` | Shift |
+| Pause, back | `C` | Backspace, Escape or C |
+| Scroll, select | scroll keys, middle key | up / down, Enter |
 
-The repository contains a separate Space Impact shell, isolated storage, an input adapter, 84 extracted image descriptors, all eight raw level descriptors and 179 wave records, terrain compositing, four decoded sound scripts, and partial movement, weapon, wave and recovery models. Their verified scope and remaining work are described in [web/FIDELITY.md](web/FIDELITY.md), [web/SPACEIMPACT_AUDIO.md](web/SPACEIMPACT_AUDIO.md), [web/SPACEIMPACT_INTEGRATION.md](web/SPACEIMPACT_INTEGRATION.md), and [tools/README.md](tools/README.md).
+## What is in the repository
 
-The next work is to complete the firmware-derived game engine: interpret all wave types and boss behavior, the remaining collision cases (ship contact with enemies is modeled and verified for level 1; see [web/FIDELITY.md](web/FIDELITY.md) for what is open, including pickups and terrain deaths) and bonus weapons, integrate the separate modules into the Space Impact page, implement complete snapshot restoration, and verify all eight levels, languages, sounds and vibration. The existing first-three-wave model intentionally stops at tick 92; it is not a full engine. The oracle models selected phone services and stops on unknown timer return codes rather than guessing.
+- `web/` is the page: plain HTML, CSS and JavaScript, no build step, no dependencies. `cd web && npm test` runs the tests (Node 22).
+- `tools/` are the Python tools that run the original handler of the game in an ARM7 emulator and record fixtures. They need a Nokia 3310 v6.39 PPM B flash image, which is **not included**; see [tools/README.md](tools/README.md).
+- [web/FIDELITY.md](web/FIDELITY.md) says, for every part of the game, whether it was read from the firmware (and how it is tested) or estimated.
 
-Run the current automated checks with:
+## Deployment
 
-```sh
-cd web
-npm test
-```
+Every push to `main` publishes `web/` to GitHub Pages (`.github/workflows/pages.yml`).
 
-`npm test` pins the browser language to English (`web/tests/support/locale.js`), because the phone otherwise follows the host language and the label checks would fail on a non-English system.
-
-Many existing checks still validate the inherited Snake II implementation; passing them does not establish Space Impact completeness. The `tools/` scripts accept a local firmware path and can regenerate the Space Impact data and firmware trace fixtures without committing the dump.
+The game belongs to Nokia; this is an unofficial fan project without any connection to Nokia or HMD.
