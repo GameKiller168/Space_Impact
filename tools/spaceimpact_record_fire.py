@@ -49,14 +49,15 @@ def record_wave(flash, level, wave_index, ship_y, limit):
             o = objects.get(ident)
             enemies.append([o['x'], o['y']] if o and m.r8(EXTRA + 12 * ident + 2) == record[1] else None)
         # every enemy bullet on the display list (class 4, the first extra byte pair identifies the class), by position
-        shots = sorted([o['x'], o['y']] for ident, o in objects.items()
+        shots = sorted([ident, o['x'], o['y']] for ident, o in objects.items()
                        if ident not in wave_ids and m.r8(EXTRA + 12 * ident + 2) == 4)
+        order = [o['id'] for o in state['objects']]
         after = (m.r32(SPAWN_RNG), m.r32(EFFECT_RNG))
-        ticks.append({'enemies': enemies, 'bullets': shots, 'rng_before': before, 'rng_after': after, 'calls': [list(c) for c in calls]})
+        ticks.append({'enemies': enemies, 'bullets': shots, 'order': order, 'rng_before': before, 'rng_after': after, 'calls': [list(c) for c in calls]})
         m.w8(0x10a1ef, 255)
         if all(e is None for e in enemies):
             break
-    return {'level': level + 1, 'wave': wave_index + 1, 'ship_y': ship_y, 'record': record, 'ticks': ticks}
+    return {'wave_ids': wave_ids, 'level': level + 1, 'wave': wave_index + 1, 'ship_y': ship_y, 'record': record, 'ticks': ticks}
 
 
 def main():
