@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.0-beta.5
+
+- **Softer key clicks:** the key sounds were too sharp. They are now a low, rounded "thock" (lower pitch, longer body, much less hiss, soft attack); the release click is a lighter version of it.
+
 ## 0.2.0-beta.4
 
 - **Link preview:** sharing the page now shows a proper 1200x630 card (title, ship and level 1 boss on the LCD green) instead of the small app icon.
