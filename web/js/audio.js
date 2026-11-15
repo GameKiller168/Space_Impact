@@ -4,18 +4,21 @@
   var NS = (globalThis.SnakeII = globalThis.SnakeII || {});
   var Tones = NS.Tones;
   var GAME_GAIN = 0.2; // This peak level is an estimate, not firmware data.
-  var KEY_GAIN = 0.3; // Click levels are estimates, not firmware data.
-  // Four key-down and three key-up clicks: noise burst (plastic snap) plus a falling thump (dome and housing).
+  var KEY_GAIN = 0.4; // Click levels are estimates, not firmware data.
+  // Measured on a recording of a real Nokia keypad: the click peaks within ~2 ms and falls to
+  // 10% in ~12 ms. A key-down is a snap (body ~300 Hz, mid noise ~800 Hz, a little 3-4 kHz); a
+  // key-up is a softer thump (body ~225 Hz, mostly low). Each spec has a falling sine body and
+  // noise bands [centre Hz, Q, level]. Four down and three up variants vary around those values.
   var CLICK_DOWN = [
-    { noiseHz: 1100, q: 0.5, noise: 0.35, noiseMs: 22, bodyHz: 135, body: 1.0, bodyMs: 55 },
-    { noiseHz: 900, q: 0.5, noise: 0.3, noiseMs: 26, bodyHz: 115, body: 1.0, bodyMs: 62 },
-    { noiseHz: 1300, q: 0.6, noise: 0.35, noiseMs: 20, bodyHz: 150, body: 0.95, bodyMs: 50 },
-    { noiseHz: 1000, q: 0.5, noise: 0.3, noiseMs: 24, bodyHz: 125, body: 1.0, bodyMs: 58 }
+    { bodyHz: 300, body: 0.9, bodyMs: 45, noiseMs: 22, bands: [[800, 0.8, 0.45], [3400, 0.9, 0.3]] },
+    { bodyHz: 280, body: 1.0, bodyMs: 50, noiseMs: 24, bands: [[700, 0.8, 0.4], [3000, 0.9, 0.25]] },
+    { bodyHz: 320, body: 0.85, bodyMs: 42, noiseMs: 20, bands: [[900, 0.8, 0.45], [3800, 0.9, 0.32]] },
+    { bodyHz: 295, body: 0.95, bodyMs: 47, noiseMs: 22, bands: [[760, 0.8, 0.42], [3200, 0.9, 0.28]] }
   ];
   var CLICK_UP = [
-    { noiseHz: 1700, q: 0.6, noise: 0.25, noiseMs: 16, bodyHz: 190, body: 0.45, bodyMs: 32 },
-    { noiseHz: 1500, q: 0.6, noise: 0.22, noiseMs: 18, bodyHz: 170, body: 0.5, bodyMs: 36 },
-    { noiseHz: 1900, q: 0.7, noise: 0.25, noiseMs: 14, bodyHz: 205, body: 0.4, bodyMs: 30 }
+    { bodyHz: 225, body: 0.8, bodyMs: 50, noiseMs: 18, bands: [[800, 0.8, 0.18], [3200, 0.9, 0.1]] },
+    { bodyHz: 210, body: 0.85, bodyMs: 55, noiseMs: 20, bands: [[700, 0.8, 0.16], [3000, 0.9, 0.08]] },
+    { bodyHz: 240, body: 0.75, bodyMs: 46, noiseMs: 16, bands: [[900, 0.8, 0.2], [3500, 0.9, 0.1]] }
   ];
   var GAME_ENVELOPE = 0.0003;
   var START_AHEAD = 0.005;
@@ -169,35 +172,40 @@
       var t = ctx.currentTime + START_AHEAD;
       var keyShift = 1 + (phoneKey.length === 1 && phoneKey >= '0' && phoneKey <= '9' ? (phoneKey.charCodeAt(0) - 52) * 0.012 : 0);
       var jitter = (0.94 + Math.random() * 0.12) * keyShift;
-      var level = (down ? 1 : 0.55) * (0.9 + Math.random() * 0.2) * KEY_GAIN;
+      var level = (down ? 1 : 0.65) * (0.9 + Math.random() * 0.2) * KEY_GAIN;
       var spec = (down ? CLICK_DOWN : CLICK_UP)[variant];
       var voice = { key: null, oscillators: [], gains: [], nodes: [], cleaned: false, endedCount: 0 };
       var source = ctx.createBufferSource();
-      var filter = ctx.createBiquadFilter();
-      var noiseGain = ctx.createGain();
       var body = ctx.createOscillator();
       var bodyGain = ctx.createGain();
+      var i;
       source.buffer = noiseBuffer();
-      filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(spec.noiseHz * jitter, t);
-      if (filter.Q) filter.Q.setValueAtTime(spec.q, t);
-      noiseGain.gain.setValueAtTime(0.0001, t);
-      noiseGain.gain.linearRampToValueAtTime(level * spec.noise, t + 0.002);
-      noiseGain.gain.exponentialRampToValueAtTime(0.0001, t + spec.noiseMs / 1000);
-      source.connect(filter);
-      filter.connect(noiseGain);
-      noiseGain.connect(ctx.destination);
+      voice.nodes.push(source);
+      for (i = 0; i < spec.bands.length; i += 1) {
+        var filter = ctx.createBiquadFilter();
+        var noiseGain = ctx.createGain();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(spec.bands[i][0] * jitter, t);
+        if (filter.Q) filter.Q.setValueAtTime(spec.bands[i][1], t);
+        noiseGain.gain.setValueAtTime(0.0001, t);
+        noiseGain.gain.linearRampToValueAtTime(level * spec.bands[i][2], t + 0.001);
+        noiseGain.gain.exponentialRampToValueAtTime(0.0001, t + spec.noiseMs / 1000);
+        source.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(ctx.destination);
+        voice.nodes.push(filter, noiseGain);
+      }
       body.type = 'sine';
       body.frequency.setValueAtTime(spec.bodyHz * jitter, t);
-      body.frequency.exponentialRampToValueAtTime(spec.bodyHz * jitter * 0.45, t + spec.bodyMs / 1000);
+      body.frequency.exponentialRampToValueAtTime(spec.bodyHz * jitter * 0.7, t + spec.bodyMs / 1000);
       bodyGain.gain.setValueAtTime(0.0001, t);
-      bodyGain.gain.linearRampToValueAtTime(level * spec.body, t + 0.002);
+      bodyGain.gain.linearRampToValueAtTime(level * spec.body, t + 0.001);
       bodyGain.gain.exponentialRampToValueAtTime(0.0001, t + spec.bodyMs / 1000);
       body.connect(bodyGain);
       bodyGain.connect(ctx.destination);
       voice.oscillators.push(body);
       voice.gains.push(bodyGain);
-      voice.nodes.push(source, filter, noiseGain, body, bodyGain);
+      voice.nodes.push(body, bodyGain);
       body.onended = function () { ended(voice); };
       source.start(t);
       source.stop(t + spec.noiseMs / 1000 + 0.01);
