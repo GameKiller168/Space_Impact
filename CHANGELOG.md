@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0-beta.7
+
+- **Key tone is on by default again**, now that the sound is a short click rather than a held beep (settings saved by earlier betas are reset to on once).
+- **Softer clicks:** less high-frequency noise, a slightly slower 2 ms attack and a rounder low body.
+
 ## 0.2.0-beta.6
 
 - **Key clicks modelled on a real keypad recording:** the click peaks within about 2 ms and is down to 10% in about 12 ms. Key down is a snap (body near 300 Hz, mid noise near 800 Hz, a little 3-4 kHz), key up a softer, lower thump near 225 Hz at about two thirds of the level; four down and three up variants with a little random pitch and level.

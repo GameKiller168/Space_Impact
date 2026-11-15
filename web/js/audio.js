@@ -10,15 +10,15 @@
   // key-up is a softer thump (body ~225 Hz, mostly low). Each spec has a falling sine body and
   // noise bands [centre Hz, Q, level]. Four down and three up variants vary around those values.
   var CLICK_DOWN = [
-    { bodyHz: 300, body: 0.9, bodyMs: 45, noiseMs: 22, bands: [[800, 0.8, 0.45], [3400, 0.9, 0.3]] },
-    { bodyHz: 280, body: 1.0, bodyMs: 50, noiseMs: 24, bands: [[700, 0.8, 0.4], [3000, 0.9, 0.25]] },
-    { bodyHz: 320, body: 0.85, bodyMs: 42, noiseMs: 20, bands: [[900, 0.8, 0.45], [3800, 0.9, 0.32]] },
-    { bodyHz: 295, body: 0.95, bodyMs: 47, noiseMs: 22, bands: [[760, 0.8, 0.42], [3200, 0.9, 0.28]] }
+    { bodyHz: 280, body: 1.0, bodyMs: 52, noiseMs: 22, bands: [[650, 0.7, 0.3], [2400, 0.7, 0.09]] },
+    { bodyHz: 260, body: 1.05, bodyMs: 56, noiseMs: 24, bands: [[600, 0.7, 0.28], [2200, 0.7, 0.08]] },
+    { bodyHz: 300, body: 0.95, bodyMs: 48, noiseMs: 20, bands: [[720, 0.7, 0.3], [2600, 0.7, 0.1]] },
+    { bodyHz: 275, body: 1.0, bodyMs: 53, noiseMs: 22, bands: [[630, 0.7, 0.29], [2300, 0.7, 0.09]] }
   ];
   var CLICK_UP = [
-    { bodyHz: 225, body: 0.8, bodyMs: 50, noiseMs: 18, bands: [[800, 0.8, 0.18], [3200, 0.9, 0.1]] },
-    { bodyHz: 210, body: 0.85, bodyMs: 55, noiseMs: 20, bands: [[700, 0.8, 0.16], [3000, 0.9, 0.08]] },
-    { bodyHz: 240, body: 0.75, bodyMs: 46, noiseMs: 16, bands: [[900, 0.8, 0.2], [3500, 0.9, 0.1]] }
+    { bodyHz: 215, body: 0.85, bodyMs: 54, noiseMs: 18, bands: [[650, 0.7, 0.12], [2400, 0.7, 0.04]] },
+    { bodyHz: 200, body: 0.9, bodyMs: 58, noiseMs: 20, bands: [[600, 0.7, 0.11], [2200, 0.7, 0.04]] },
+    { bodyHz: 230, body: 0.8, bodyMs: 50, noiseMs: 16, bands: [[720, 0.7, 0.13], [2600, 0.7, 0.04]] }
   ];
   var GAME_ENVELOPE = 0.0003;
   var START_AHEAD = 0.005;
@@ -188,7 +188,7 @@
         filter.frequency.setValueAtTime(spec.bands[i][0] * jitter, t);
         if (filter.Q) filter.Q.setValueAtTime(spec.bands[i][1], t);
         noiseGain.gain.setValueAtTime(0.0001, t);
-        noiseGain.gain.linearRampToValueAtTime(level * spec.bands[i][2], t + 0.001);
+        noiseGain.gain.linearRampToValueAtTime(level * spec.bands[i][2], t + 0.002);
         noiseGain.gain.exponentialRampToValueAtTime(0.0001, t + spec.noiseMs / 1000);
         source.connect(filter);
         filter.connect(noiseGain);
@@ -199,7 +199,7 @@
       body.frequency.setValueAtTime(spec.bodyHz * jitter, t);
       body.frequency.exponentialRampToValueAtTime(spec.bodyHz * jitter * 0.7, t + spec.bodyMs / 1000);
       bodyGain.gain.setValueAtTime(0.0001, t);
-      bodyGain.gain.linearRampToValueAtTime(level * spec.body, t + 0.001);
+      bodyGain.gain.linearRampToValueAtTime(level * spec.body, t + 0.002);
       bodyGain.gain.exponentialRampToValueAtTime(0.0001, t + spec.bodyMs / 1000);
       body.connect(bodyGain);
       bodyGain.connect(ctx.destination);

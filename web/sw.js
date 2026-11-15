@@ -1,7 +1,7 @@
 /* Discover the page's local assets at install time so the cache follows it. */
 'use strict';
 
-const VERSION = '0.2.0-beta.6';
+const VERSION = '0.2.0-beta.7';
 const CACHE_PREFIX = 'space-impact-v';
 const CACHE = CACHE_PREFIX + VERSION;
 const ROOT_URL = new URL('./', self.location.href).href;
