@@ -21,7 +21,8 @@ FakeAudioContext.prototype.resume = function () {
 };
 FakeAudioContext.prototype.createOscillator = function () {
   var oscillator = {
-    type: '', frequency: { events: [], setValueAtTime: function (value, time) { this.events.push([value, time]); } },
+    type: '', frequency: { events: [], setValueAtTime: function (value, time) { this.events.push([value, time]); },
+      exponentialRampToValueAtTime: function () {} },
     starts: [], stops: [], connections: [], disconnectCount: 0, onended: null,
     connect: function (node) { this.connections.push(node); },
     start: function (time) { this.starts.push(time); },
@@ -36,6 +37,7 @@ FakeAudioContext.prototype.createGain = function () {
     events: [], cancelEvents: [],
     setValueAtTime: function (value, time) { this.events.push(['set', value, time]); },
     linearRampToValueAtTime: function (value, time) { this.events.push(['ramp', value, time]); },
+    exponentialRampToValueAtTime: function (value, time) { this.events.push(['ramp', value, time]); },
     cancelScheduledValues: function (time) { this.cancelEvents.push(time); }
   };
   this.gains.push(gain);
@@ -45,6 +47,22 @@ FakeAudioContext.prototype.createGain = function () {
   };
   this.gainNodes.push(gainNode);
   return gainNode;
+};
+
+FakeAudioContext.prototype.sampleRate = 8000;
+FakeAudioContext.prototype.createBuffer = function (channels, length) {
+  var data = new Float32Array(length);
+  return { length: length, getChannelData: function () { return data; } };
+};
+FakeAudioContext.prototype.createBufferSource = function () {
+  var source = { starts: [], stops: [], connect: function () {}, disconnect: function () {},
+    start: function (t) { this.starts.push(t); }, stop: function (t) { this.stops.push(t); } };
+  (this.sources = this.sources || []).push(source);
+  return source;
+};
+FakeAudioContext.prototype.createBiquadFilter = function () {
+  return { type: '', frequency: { setValueAtTime: function () {} }, Q: { setValueAtTime: function () {} },
+    connect: function () {}, disconnect: function () {} };
 };
 
 function contextFactory() {
@@ -78,7 +96,7 @@ test('game scripts schedule tones at exact tick lengths and gaps', function () {
   assert.ok(Math.abs(ctx.oscillators[1].stops[0] - ctx.oscillators[1].starts[0] - 0.0159375) < 1e-9);
 });
 
-test('injected Space Impact tones play their own scripts while key DTMF remains available', function () {
+test('injected Space Impact tones play their own scripts', function () {
   var Context = contextFactory();
   var tones = require('../js/spaceimpact-tones.js');
   var audio = Audio.create({ AudioContext: Context, settings: { gameSounds: true, keyTones: true }, gameTones: tones });
@@ -88,8 +106,6 @@ test('injected Space Impact tones play their own scripts while key DTMF remains 
   assert.ok(Math.abs(Context.last.oscillators[0].stops[0] - Context.last.oscillators[0].starts[0] - 0.03984375) < 1e-9);
   audio.playGame('eat');
   assert.equal(Context.last.oscillators.length, 4);
-  audio.keyDown('5');
-  assert.deepEqual(Context.last.oscillators.slice(4).map(function (osc) { return osc.frequency.events[0][0]; }), [770, 1336]);
 });
 
 test('won script includes the silent gap in the second note start', function () {
@@ -103,19 +119,44 @@ test('won script includes the silent gap in the second note start', function () 
   assert.ok(Math.abs(Context.last.oscillators[1].starts[0] - Context.last.oscillators[0].starts[0] - 0.1434375) < 1e-9);
 });
 
-test('DTMF key holds both frequencies and enforces an audible minimum', function () {
+test('a key plays a short click on press and a different, quieter one on release', function () {
   var Context = contextFactory();
   var audio = Audio.create({ AudioContext: Context, settings: { keyTones: true } });
   audio.unlock();
   audio.keyDown('5');
   audio.keyDown('5');
-  assert.equal(Context.last.oscillators.length, 2);
-  assert.deepEqual(Context.last.oscillators.map(function (osc) { return osc.frequency.events[0][0]; }), [770, 1336]);
-  assert.deepEqual(Context.last.oscillators.map(function (osc) { return osc.type; }), ['sine', 'sine']);
+  assert.equal(Context.last.sources.length, 1);
+  assert.equal(Context.last.oscillators.length, 1);
+  assert.ok(Context.last.oscillators[0].stops[0] - Context.last.oscillators[0].starts[0] < 0.06);
   audio.keyUp('5');
-  assert.ok(Math.abs(Context.last.oscillators[0].stops[0] - (Context.last.oscillators[0].starts[0] + 0.065)) < 1e-9);
-  audio.keyUp('not-playing');
+  assert.equal(Context.last.sources.length, 2);
   assert.equal(Context.last.oscillators.length, 2);
+  audio.keyUp('5');
+  audio.keyUp('not-pressed');
+  assert.equal(Context.last.sources.length, 2);
+});
+
+test('a held key is silent after its click', function () {
+  var Context = contextFactory();
+  var audio = Audio.create({ AudioContext: Context, settings: { keyTones: true } });
+  audio.unlock();
+  audio.keyDown('8');
+  var stop = Context.last.oscillators[0].stops[0];
+  assert.ok(stop - Context.last.currentTime < 0.1);
+});
+
+test('key down and key up clicks rotate through variants', function () {
+  var Context = contextFactory();
+  var audio = Audio.create({ AudioContext: Context, settings: { keyTones: true } });
+  var lengths = {};
+  var i;
+  audio.unlock();
+  for (i = 0; i < 12; i += 1) { audio.keyDown('1'); audio.keyUp('1'); }
+  Context.last.oscillators.forEach(function (osc, n) {
+    var key = (n % 2 ? 'up' : 'down') + Math.round((osc.stops[0] - osc.starts[0]) * 1000);
+    lengths[key] = true;
+  });
+  assert.ok(Object.keys(lengths).length >= 4);
 });
 
 test('settings are read at call time and disabled sounds allocate no nodes', function () {
@@ -125,12 +166,13 @@ test('settings are read at call time and disabled sounds allocate no nodes', fun
   audio.unlock();
   audio.playGame('eat');
   audio.keyDown('1');
+  audio.keyUp('1');
   assert.equal(Context.last.oscillators.length, 0);
   settings.gameSounds = true;
   settings.keyTones = true;
   audio.playGame('eat');
   audio.keyDown('1');
-  assert.equal(Context.last.oscillators.length, 3);
+  assert.equal(Context.last.oscillators.length, 2);
 });
 
 test('unlock is idempotent and unsupported or throwing contexts stay silent', function () {
@@ -148,7 +190,7 @@ test('unlock is idempotent and unsupported or throwing contexts stay silent', fu
   assert.doesNotThrow(function () { broken.unlock(); broken.playGame('eat'); broken.keyDown('1'); broken.keyUp('1'); broken.stopAll(); });
 });
 
-test('a new game tone cancels the previous voice and stopAll releases held keys', function () {
+test('a new game tone cancels the previous voice and stopAll forgets pressed keys', function () {
   var Context = contextFactory();
   var audio = Audio.create({ AudioContext: Context, settings: { gameSounds: true, keyTones: true } });
   audio.unlock();
@@ -159,7 +201,9 @@ test('a new game tone cancels the previous voice and stopAll releases held keys'
   assert.ok(Context.last.gains[0].cancelEvents.length > 0);
   audio.keyDown('2');
   audio.stopAll();
-  assert.ok(Context.last.oscillators[3].stops.length > 0);
+  var count = Context.last.sources.length;
+  audio.keyUp('2');
+  assert.equal(Context.last.sources.length, count);
 });
 
 test('finished game voices disconnect their nodes', function () {
