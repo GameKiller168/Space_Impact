@@ -12,7 +12,7 @@ const BACKGROUND = [0xa2, 0xad, 0x8a, 0xff];
 const INK = [0x22, 0x2a, 0x1c, 0xff];
 const TRANSPARENT = [0, 0, 0, 0];
 const SCENE_WIDTH = 31;
-const SCENE_HEIGHT = 7;
+const SCENE_HEIGHT = 23;
 const outputDir = path.join(__dirname, '..', 'web', 'icons');
 
 function crc32(buffer) {
@@ -76,10 +76,11 @@ function makeIcon(size, maskable, rounded) {
   const left = Math.floor((size - SCENE_WIDTH * scale) / 2);
   const top = Math.floor((size - SCENE_HEIGHT * scale) / 2);
 
-  function draw(bitmap, atX, atY) {
+  // negative pictures (the level 1 boss) have their figure in the clear bits
+  function draw(bitmap, atX, atY, negative) {
     for (let y = 0; y < bitmap.height; y++) {
       for (let x = 0; x < bitmap.width; x++) {
-        if (bitmap.rows[y][x] !== '#') continue;
+        if (bitmap.rows[y][x] !== (negative ? '.' : '#')) continue;
         for (let dy = 0; dy < scale; dy++) {
           for (let dx = 0; dx < scale; dx++) {
             const offset = ((top + (atY + y) * scale + dy) * size + left + (atX + x) * scale + dx) * 4;
@@ -90,12 +91,12 @@ function makeIcon(size, maskable, rounded) {
     }
   }
 
-  // images[0] is the 10x7 ship; images[17] is the 2x1 main shot;
-  // images[4] is an 11x5 enemy, all from the extracted descriptor table.
-  draw(images[0], 0, 0);
-  draw(images[17], 12, 3);
-  draw(images[17], 16, 3);
-  draw(images[4], 20, 1);
+  // images[1] is the 10x7 ship (images[0] is the same ship stored as a negative); images[17] is the 2x1 main shot; images[27] is the
+  // 20x23 boss of level 1, stored as a negative, so its figure is the clear bits. All from the extracted descriptor table.
+  draw(images[27], 11, 0, true);
+  draw(images[1], 0, 8);
+  draw(images[17], 11, 11);
+  draw(images[17], 15, 11);
   return png(size, pixels);
 }
 
