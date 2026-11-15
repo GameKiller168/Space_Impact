@@ -27,6 +27,7 @@
   var Classes = ns.Classes || (req ? require('./spaceimpact-classes.js') : null);
   var Random = ns.Random || (req ? require('./spaceimpact-random.js') : null);
   var Enemies = ns.Enemies || (req ? require('./spaceimpact-enemies.js') : null);
+  var Fire = ns.Fire || (req ? require('./spaceimpact-fire.js') : null);
   var Text = common.Text || (req ? require('./text.js') : null);
 
   var TICK_MS = 100, MAX_ACC = 1000;
@@ -59,7 +60,7 @@
     if (game.objects.length >= MAX_OBJECTS) return null;
     var size = sizeOf(cls);
     var object = { id: game.nextId++, cls: cls, x: x, y: y, w: size.w, h: size.h, hp: 1, age: 0, vm: 6, speed: 0,
-      y0: y, phase: 0, dir: 1, dead: 0, stop: 0, held: 0 };
+      y0: y, phase: 0, dir: 1, dead: 0, stop: 0, held: 0, div: 0, ammo: 0 };
     for (var key in extra) if (Object.prototype.hasOwnProperty.call(extra, key)) object[key] = extra[key];
     game.objects.push(object);
     return object;
@@ -72,7 +73,7 @@
       var y = Enemies.spawnY(record, game.level, sizeOf(cls).h, fixedY === 63 ? Random.spawn(game.rng) : 0);
       if (boss) y = Math.max(PLAYFIELD_TOP, Math.min(y, 48 - sizeOf(cls).h));
       var object = addObject(game, cls, 84 + spacing * i, y, { hp: Math.max(1, hp), vm: vm, speed: speed, y0: y,
-        phase: 0, dir: vm === 24 ? -1 : (cls & 1) ? -1 : 1, stop: boss ? Classes.stopX(cls) : 0 });
+        phase: 0, dir: vm === 24 ? -1 : (cls & 1) ? -1 : 1, stop: boss ? Classes.stopX(cls) : 0, div: record[7], ammo: record[8] });
       if (object && boss) game.bossSeen = true;
     }
   }
@@ -228,9 +229,19 @@
         if (object.dead) { object.dead += 1; continue; }
         object.age += 1;
         moveObject(this, object);
-        var rate = Classes.fireRate(object.cls);
-        if (rate && object.x <= 79 && object.x + object.w > 0 && nextRandom(this) < rate && this.countBullets() < 14) {
-          addObject(this, CLASS_BULLET, object.x - 5, object.y + Math.floor(object.h / 2), { speed: 3 });
+        if (object.cls === CLASS_BULLET) {
+          /* bullets do not shoot */
+        } else if (Enemies.handles(object.vm)) {
+          // an ordinary enemy shoots by the firmware's rule: the movement mode says when the check runs
+          if (!object.gone && (object.shoot === 2 || (object.shoot === 1 && Fire.check(this.rng, object)))) {
+            var shot = Fire.shoot(object);
+            if (shot) addObject(this, CLASS_BULLET, shot.x, shot.y, { speed: 3 });
+          }
+        } else {
+          var rate = Classes.fireRate(object.cls);
+          if (rate && object.x <= 79 && object.x + object.w > 0 && nextRandom(this) < rate && this.countBullets() < 14) {
+            addObject(this, CLASS_BULLET, object.x - 5, object.y + Math.floor(object.h / 2), { speed: 3 });
+          }
         }
       }
       this.objects = this.objects.filter(function (o) {
@@ -404,7 +415,7 @@
     out.ship = { x: this.ship.x, y: this.ship.y };
     out.weapons = { cooldown: this.weapons.cooldown, repeats: this.weapons.repeats, shots: this.weapons.shots.map(function (s) { return { x: s.x, y: s.y }; }) };
     out.objects = this.objects.map(function (o) {
-      return { id: o.id, cls: o.cls, x: o.x, y: o.y, hp: o.hp, age: o.age, vm: o.vm, speed: o.speed, y0: o.y0, phase: o.phase, dir: o.dir, dead: o.dead, stop: o.stop, held: o.held };
+      return { id: o.id, cls: o.cls, x: o.x, y: o.y, hp: o.hp, age: o.age, vm: o.vm, speed: o.speed, y0: o.y0, phase: o.phase, dir: o.dir, dead: o.dead, stop: o.stop, held: o.held, div: o.div, ammo: o.ammo };
     });
     return JSON.parse(JSON.stringify(out));
   };
@@ -427,7 +438,8 @@
       o = s.objects[i];
       if (!o || !isInt(o.id, 1, 1e9) || !isInt(o.cls, 0, 255) || !Classes.known(o.cls) || !isInt(o.x, -200, 400) || !isInt(o.y, -50, 100) ||
           !isInt(o.hp, -100, 255) || !isInt(o.age, 0, 1e9) || !isInt(o.vm, 0, 255) || !isInt(o.speed, 0, 255) || !isInt(o.y0, -50, 100) ||
-          !isInt(o.phase, 0, 255) || (o.dir !== 1 && o.dir !== -1) || !isInt(o.dead, 0, 20) || !isInt(o.stop, 0, 255) || !isInt(o.held, 0, 1e6)) return null;
+          !isInt(o.phase, 0, 255) || (o.dir !== 1 && o.dir !== -1) || !isInt(o.dead, 0, 20) || !isInt(o.stop, 0, 255) || !isInt(o.held, 0, 1e6) ||
+          !isInt(o.div, 0, 255) || !isInt(o.ammo, 0, 255)) return null;
     }
     var game = new Game({});
     for (i = 0; i < KEYS.length; i++) game[KEYS[i]] = s[KEYS[i]];
@@ -437,7 +449,7 @@
     game.objects = s.objects.map(function (obj) {
       var size = sizeOf(obj.cls);
       return { id: obj.id, cls: obj.cls, x: obj.x, y: obj.y, w: size.w, h: size.h, hp: obj.hp, age: obj.age, vm: obj.vm, speed: obj.speed,
-        y0: obj.y0, phase: obj.phase, dir: obj.dir, dead: obj.dead, stop: obj.stop, held: obj.held };
+        y0: obj.y0, phase: obj.phase, dir: obj.dir, dead: obj.dead, stop: obj.stop, held: obj.held, div: obj.div, ammo: obj.ammo };
     });
     game.extra = [];
     return game;
