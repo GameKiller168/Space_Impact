@@ -4,10 +4,19 @@
   var NS = (globalThis.SnakeII = globalThis.SnakeII || {});
   var Tones = NS.Tones;
   var GAME_GAIN = 0.2; // This peak level is an estimate, not firmware data.
-  var MIN_KEY_MS = 60; // This audible minimum is an estimate for quick taps.
-  var KEY_CHAR = { select: 'A', c: 'B', scrollUp: 'C', scrollDown: 'D' }; // These phone-key mappings are estimates.
-  var KEY_ATTACK = 0.002;
-  var KEY_RELEASE = 0.005;
+  var KEY_GAIN = 0.35; // Click levels are estimates, not firmware data.
+  // Four key-down and three key-up clicks: noise burst (plastic snap) plus a falling thump (dome and housing).
+  var CLICK_DOWN = [
+    { noiseHz: 3200, q: 1.1, noise: 1.0, noiseMs: 14, bodyHz: 190, body: 0.9, bodyMs: 28 },
+    { noiseHz: 2700, q: 0.9, noise: 0.9, noiseMs: 18, bodyHz: 160, body: 1.0, bodyMs: 32 },
+    { noiseHz: 3600, q: 1.3, noise: 1.0, noiseMs: 12, bodyHz: 220, body: 0.8, bodyMs: 24 },
+    { noiseHz: 3000, q: 1.0, noise: 0.95, noiseMs: 16, bodyHz: 175, body: 0.95, bodyMs: 30 }
+  ];
+  var CLICK_UP = [
+    { noiseHz: 4600, q: 1.4, noise: 0.8, noiseMs: 9, bodyHz: 300, body: 0.35, bodyMs: 14 },
+    { noiseHz: 4100, q: 1.2, noise: 0.7, noiseMs: 11, bodyHz: 260, body: 0.4, bodyMs: 16 },
+    { noiseHz: 5000, q: 1.5, noise: 0.75, noiseMs: 8, bodyHz: 330, body: 0.3, bodyMs: 12 }
+  ];
   var GAME_ENVELOPE = 0.0003;
   var START_AHEAD = 0.005;
 
@@ -21,7 +30,10 @@
     var ctx = null;
     var unlocked = false;
     var gameVoice = null;
-    var keyVoices = {};
+    var pressed = {};
+    var noise = null;
+    var downVariant = 0;
+    var upVariant = 0;
 
     function isSupported() {
       return typeof Context === 'function';
@@ -38,11 +50,7 @@
       if (!voice || voice.cleaned) return;
       voice.cleaned = true;
       for (i = 0; i < voice.nodes.length; i += 1) disconnect(voice.nodes[i]);
-      if (voice.key) {
-        if (keyVoices[voice.key] === voice) delete keyVoices[voice.key];
-      } else if (gameVoice === voice) {
-        gameVoice = null;
-      }
+      if (gameVoice === voice) gameVoice = null;
     }
 
     function ended(voice) {
@@ -142,82 +150,84 @@
       }
     }
 
-    function keyDown(phoneKey) {
-      var char;
-      var frequencies;
-      var voice;
+    // Key sounds are short mechanical clicks instead of held DTMF beeps: a different
+    // click when the key goes down and when it comes back up, several variants of each,
+    // with a little random pitch and level so repeated presses do not sound identical.
+    function noiseBuffer() {
+      var length;
+      var data;
       var i;
-      if (!ready() || keyVoices[phoneKey]) return;
+      if (noise) return noise;
+      length = Math.max(1, Math.floor(ctx.sampleRate * 0.05));
+      noise = ctx.createBuffer(1, length, ctx.sampleRate);
+      data = noise.getChannelData(0);
+      for (i = 0; i < length; i += 1) data[i] = Math.random() * 2 - 1;
+      return noise;
+    }
+
+    function click(phoneKey, variant, down) {
+      var t = ctx.currentTime + START_AHEAD;
+      var keyShift = 1 + (phoneKey.length === 1 && phoneKey >= '0' && phoneKey <= '9' ? (phoneKey.charCodeAt(0) - 52) * 0.012 : 0);
+      var jitter = (0.94 + Math.random() * 0.12) * keyShift;
+      var level = (down ? 1 : 0.55) * (0.9 + Math.random() * 0.2) * KEY_GAIN;
+      var spec = (down ? CLICK_DOWN : CLICK_UP)[variant];
+      var voice = { key: null, oscillators: [], gains: [], nodes: [], cleaned: false, endedCount: 0 };
+      var source = ctx.createBufferSource();
+      var filter = ctx.createBiquadFilter();
+      var noiseGain = ctx.createGain();
+      var body = ctx.createOscillator();
+      var bodyGain = ctx.createGain();
+      source.buffer = noiseBuffer();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(spec.noiseHz * jitter, t);
+      if (filter.Q) filter.Q.setValueAtTime(spec.q, t);
+      noiseGain.gain.setValueAtTime(level * spec.noise, t);
+      noiseGain.gain.exponentialRampToValueAtTime(0.0001, t + spec.noiseMs / 1000);
+      source.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(ctx.destination);
+      body.type = 'sine';
+      body.frequency.setValueAtTime(spec.bodyHz * jitter, t);
+      body.frequency.exponentialRampToValueAtTime(spec.bodyHz * jitter * 0.45, t + spec.bodyMs / 1000);
+      bodyGain.gain.setValueAtTime(level * spec.body, t);
+      bodyGain.gain.exponentialRampToValueAtTime(0.0001, t + spec.bodyMs / 1000);
+      body.connect(bodyGain);
+      bodyGain.connect(ctx.destination);
+      voice.oscillators.push(body);
+      voice.gains.push(bodyGain);
+      voice.nodes.push(source, filter, noiseGain, body, bodyGain);
+      body.onended = function () { ended(voice); };
+      source.start(t);
+      source.stop(t + spec.noiseMs / 1000 + 0.01);
+      body.start(t);
+      body.stop(t + spec.bodyMs / 1000 + 0.01);
+    }
+
+    function keyDown(phoneKey) {
+      if (!ready() || pressed[phoneKey]) return;
       try {
         if (!settings.keyTones) return;
-        char = Object.prototype.hasOwnProperty.call(Tones.DTMF, phoneKey) ? phoneKey : KEY_CHAR[phoneKey];
-        frequencies = char && Tones.DTMF[char];
-        if (!frequencies) return;
-        voice = { key: phoneKey, oscillators: [], gains: [], nodes: [], cleaned: false, endedCount: 0, startedAt: ctx.currentTime };
-        keyVoices[phoneKey] = voice;
-        for (i = 0; i < frequencies.length; i += 1) {
-          var oscillator = ctx.createOscillator();
-          var gainNode = ctx.createGain();
-          oscillator.type = 'sine';
-          oscillator.frequency.setValueAtTime(frequencies[i], voice.startedAt);
-          gainNode.gain.setValueAtTime(0, voice.startedAt);
-          gainNode.gain.linearRampToValueAtTime(0.1, voice.startedAt + KEY_ATTACK);
-          oscillator.connect(gainNode);
-          gainNode.connect(ctx.destination);
-          voice.oscillators.push(oscillator);
-          voice.gains.push(gainNode);
-          voice.nodes.push(oscillator, gainNode);
-          oscillator.onended = (function (v) {
-            return function () { ended(v); };
-          })(voice);
-          oscillator.start(voice.startedAt);
-        }
-      } catch (ignore) {
-        if (voice) cleanupVoice(voice);
-      }
+        pressed[phoneKey] = true;
+        downVariant = (downVariant + 1 + Math.floor(Math.random() * (CLICK_DOWN.length - 1))) % CLICK_DOWN.length;
+        click(phoneKey, downVariant, true);
+      } catch (ignore) {}
     }
 
     function keyUp(phoneKey) {
-      var voice = keyVoices[phoneKey];
-      var releaseAt;
-      var i;
-      if (!ready() || !voice) return;
+      if (!pressed[phoneKey]) return;
+      delete pressed[phoneKey];
+      if (!ready()) return;
       try {
-        releaseAt = Math.max(ctx.currentTime, voice.startedAt + MIN_KEY_MS / 1000);
-        for (i = 0; i < voice.oscillators.length; i += 1) {
-          voice.gains[i].gain.cancelScheduledValues(releaseAt);
-          voice.gains[i].gain.setValueAtTime(0.1, releaseAt);
-          voice.gains[i].gain.linearRampToValueAtTime(0, releaseAt + KEY_RELEASE);
-          voice.oscillators[i].stop(releaseAt + KEY_RELEASE);
-        }
-      } catch (ignore) {
-        cleanupVoice(voice);
-      }
+        if (!settings.keyTones) return;
+        upVariant = (upVariant + 1 + Math.floor(Math.random() * (CLICK_UP.length - 1))) % CLICK_UP.length;
+        click(phoneKey, upVariant, false);
+      } catch (ignore) {}
     }
 
     function stopAll() {
-      var key;
-      var now;
-      var voice;
-      var i;
       if (!ready()) return;
-      try {
-        cancelGame();
-        now = ctx.currentTime;
-        for (key in keyVoices) {
-          if (Object.prototype.hasOwnProperty.call(keyVoices, key)) {
-            voice = keyVoices[key];
-            for (i = 0; i < voice.oscillators.length; i += 1) {
-              try {
-              voice.gains[i].gain.cancelScheduledValues(now);
-              voice.gains[i].gain.setValueAtTime(0.1, now);
-              voice.gains[i].gain.linearRampToValueAtTime(0, now + KEY_RELEASE);
-              voice.oscillators[i].stop(now + KEY_RELEASE);
-              } catch (ignore) {}
-            }
-          }
-        }
-      } catch (ignore) {}
+      try { cancelGame(); } catch (ignore) {}
+      pressed = {};
     }
 
     return {

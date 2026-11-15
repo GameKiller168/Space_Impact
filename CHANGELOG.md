@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0-beta.4
+
+- **Link preview:** sharing the page now shows a proper 1200x630 card (title, ship and level 1 boss on the LCD green) instead of the small app icon.
+- **Key tone is off by default.** Keys no longer hold a beep for as long as they are pressed, which was grating in a game where a key is held down constantly; settings saved with the old default are reset to off once.
+- **Key sounds are clicks:** a snap when a key goes down and a lighter, higher one when it comes back up, with four down and three up variants and a little random pitch and level, so repeated presses sound like a real keypad. (The click sounds are an estimate, not firmware data.)
+
 ## 0.2.0-beta.3
 
 - **Pictures:** the ship of level 1 and the bosses of levels 1, 5 and 6 are stored as negatives in the firmware and were drawn as boxes with a hole. They are drawn the right way round now, the ship has its own picture on level 1, and the app icon shows the real ship and the level 1 boss (reported with reference footage of the real game).
