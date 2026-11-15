@@ -20,6 +20,7 @@
   var LevelData = root.SpaceImpactLevels || (req ? require('./spaceimpact-levels.js') : null);
   var Terrain = root.SpaceImpactTerrain || (req ? require('./spaceimpact-terrain.js') : null);
   var Contact = ns.Contact || (req ? require('./spaceimpact-contact.js') : null);
+  var TerrainContact = ns.TerrainContact || (req ? require('./spaceimpact-terrain-contact.js') : null);
   var Controls = ns.Controls || (req ? require('./spaceimpact-controls.js') : null);
   var Weapons = ns.Weapons || (req ? require('./spaceimpact-weapons.js') : null);
   var Render = ns.Render || (req ? require('./spaceimpact-render.js') : null);
@@ -159,7 +160,9 @@
 
   Game.prototype.moveShip = function (code) {
     if (this.mode !== 'play') return;
-    var bounds = { left: Controls.INITIAL_BOUNDS.left, right: Controls.INITIAL_BOUNDS.right, top: Controls.INITIAL_BOUNDS.top, bottom: Controls.INITIAL_BOUNDS.bottom };
+    var upperTerrain = this.level === 4 || this.level === 5;
+    var bounds = { left: Controls.INITIAL_BOUNDS.left, right: Controls.INITIAL_BOUNDS.right,
+      top: upperTerrain ? 1 : 6, bottom: upperTerrain ? 35 : 41 };
     this.ship = Controls.move(this.ship, code, bounds);
   };
 
@@ -311,22 +314,12 @@
         return;
       }
     }
-    if (this.guard === 0 && this.level >= 1 && this.terrainContact()) this.beginDying();
+    if (this.terrainContact()) this.beginDying();
   };
 
   Game.prototype.terrainContact = function () {
-    var bytes = Terrain.renderBytes(this.level + 1, this.scroll), originY = Terrain.originY(this.level + 1);
-    var rows = image(SHIP_FRAME).rows;
-    for (var r = 0; r < rows.length; r++) {
-      var ty = this.ship.y + r - originY;
-      if (ty < 0 || ty >= 16) continue;
-      for (var c = 0; c < rows[r].length; c++) {
-        if (rows[r][c] !== '#') continue;
-        var tx = this.ship.x + c;
-        if (tx >= 0 && tx < 84 && (bytes[(ty >> 3) * 84 + tx] & (1 << (ty & 7)))) return true;
-      }
-    }
-    return false;
+    return TerrainContact.hits(this.level + 1, this.scroll, { x: this.ship.x, y: this.ship.y,
+      width: image(SHIP_FRAME).width, height: image(SHIP_FRAME).height, pages: pagesOf(SHIP_FRAME) });
   };
 
   Game.prototype.beginDying = function () {
