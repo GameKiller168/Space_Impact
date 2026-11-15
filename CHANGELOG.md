@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0-beta.2
+
+- Your shots hit by the firmware's rule: the first object whose box touches the shot takes one hit point; 5 points for a hit, 10 for a kill, none for an enemy bullet; the explosion shows the enemy's own picture first.
+- Terrain contact decoded from the firmware (all eight levels; none on level 2), including the start shield pushing the ship away from the terrain and the upper-terrain movement limits.
+- Pickups (reward rolls, flight and sound), the bonus weapon on keys 4 and 6 (ammunition, shared cooldown, targeting, damage), lives, respawn position and shield, ship sounds and vibration, with the ammunition shown next to the score.
+- New fixtures and tools for all of these (`tools/spaceimpact_record_enemy_hits.py` and others), see `tools/README.md`.
+
 ## 0.2.0-beta.1
 
 - New page: the look, the tactile keypad and the multi-touch input of the sister project Snake II; installable, works offline.

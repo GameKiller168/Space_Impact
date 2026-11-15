@@ -2,9 +2,9 @@
 
 A fan-made recreation of the Nokia 3310 game **Space Impact** in the browser, rebuilt from data read out of the phone's own firmware (v6.39, PPM B).
 
-**[▶ Play v0.2 beta](https://gamekiller168.github.io/Space_Impact/)** · [What is verified](web/FIDELITY.md) · [Changelog](CHANGELOG.md)
+**[▶ Play v0.2 beta 2](https://gamekiller168.github.io/Space_Impact/)** · [What is verified](web/FIDELITY.md) · [Changelog](CHANGELOG.md)
 
-> **Beta.** The ordinary enemies, their shots, the waves, the ship, the terrain and the texts follow the firmware and are checked against it by tests. The bosses, the level ends, the points, the pickups, terrain deaths and the bonus weapons (keys 4 and 6) are still estimates; an honest list is in [web/FIDELITY.md](web/FIDELITY.md). It is **not** a verified copy and not v1.0.
+> **Beta.** The ordinary enemies, their shots, how your shots hit and score, the waves, the ship (lives, shield, terrain contact), pickups, the bonus weapon, the terrain and the texts follow the firmware and are checked against it by tests. The bosses and the level ends are still estimates; an honest list is in [web/FIDELITY.md](web/FIDELITY.md). It is **not** a verified copy and not v1.0.
 
 ## Play
 
@@ -15,7 +15,7 @@ The page is a phone: display, function keys and keypad (the look of the sister p
 | Up / down | `8` / `0` | arrow keys or W / S |
 | Back / forward | `*` / `#` | arrow keys or A / D |
 | Main weapon (hold it to keep firing) | `1` or `3` | Space |
-| Bonus weapons (not yet implemented) | `4` or `6` | Shift |
+| Bonus weapon | `4` or `6` | Shift |
 | Pause, back | `C` | Backspace, Escape or C |
 | Scroll, select | scroll keys, middle key | up / down, Enter |
 

@@ -52,7 +52,7 @@ The English PPM help text and the actual handler at `0x257e1c` agree: keys `8` a
 - Add Space Impact-specific oracle tests and run all eight levels through completion.
 - Build, review, commit, push, and tag a release after those checks pass.
 
-## Engine v0.2 (`spaceimpact-engine.js`, playable on the page)
+## Engine v0.2 beta 2 (`spaceimpact-engine.js`, playable on the page)
 
 Verified against the running firmware (tests in `web/tests`, fixtures recorded with the tools in `tools/`):
 
@@ -65,9 +65,12 @@ Verified against the running firmware (tests in `web/tests`, fixtures recorded w
 | Ship movement and main shot; ship contact with enemies; explosion, respawn and shield | existing fixtures |
 | Terrain compositing; class-to-sprite table; hit points from the wave records | existing fixtures |
 | Texts: the labels and notes of the five PPM B languages and the instruction text of ten languages come from the firmware's text tables | `tools/spaceimpact_generate_texts.py` |
+| Ship shots against ordinary enemies: the first collidable object whose box touches the shot (inclusive edges, no pixel test) takes one hit point; 5 points for a hit, 10 for a kill, none for an enemy bullet; the score has an upper limit; explosion pictures | `spaceimpact-enemy-hits.json`, `spaceimpact-enemy-scoring.json`, `spaceimpact-enemy-hits.test.js` |
+| Terrain contact of the ship on all eight levels (not on level 2), the start shield pushing the ship off the terrain, the upper-terrain movement limits | `spaceimpact-terrain-contact.json`, `spaceimpact-terrain-contact.test.js` |
+| Pickups (reward rolls, flight, tone), the bonus weapon (keys 4 and 6: ammunition, shared cooldown, targeting, damage), lives, respawn position and shield, ship sound and vibration contexts | `spaceimpact-pickups.json`, `spaceimpact-bonus.json`, `spaceimpact-lives-details.json`, `spaceimpact-ship-sounds.json` and their tests |
 
 Known differences inside the shooting test (26 records stop early in `spaceimpact-enemy-fire.json`): a bullet that reaches the parked ship or its start shield, the ship object itself missing from the recording, and whether a mini-boss's bullet is moved on the tick it is made.
 
-Approximated, not verified: boss routines (movement, attacks, hit points feedback, death), the level-end sequence, the final boss's turrets, points per class, pickup effect (+1 life up to 5, else +50), the shield's effect on touching enemies and bullets, terrain deaths on levels 2-8 (a decoded module is present, see `spaceimpact-terrain-contact.js`, but its recording is not yet part of the tests), bonus weapons (keys 4/6 do nothing). A held fire key keeps firing (the firmware accepts five repeat messages per press; the page then sends a fresh press); held keys survive a lost life.
+Approximated, not verified: boss routines (movement, attacks, damage feedback, points, death), the level-end sequence, the final boss's turrets, and the shield's effect on touching enemies and bullets. A held fire key keeps firing (the firmware accepts five repeat messages per press; the page then sends a fresh press); held keys survive a lost life.
 
 Play-test (browser, 2026-11): menu, new game, movement, fire, death and respawn, game over note, pause/continue, reload restore and mobile layout work; a scripted invulnerable bot reaches level 8 without console errors. Sounds and vibration were not heard or felt in this test. Nothing here has been compared with a real phone.
