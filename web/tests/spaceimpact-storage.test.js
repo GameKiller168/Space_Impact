@@ -63,13 +63,13 @@ test('game snapshots use a separate key and clear independently of settings', ()
   assert.equal(storage.getItem('snake2.v1.save'), 'unchanged');
 });
 
-test('key tones are off by default and old settings that had them on are reset once', () => {
+test('key tones are on by default and settings from older key-sound versions are reset once', () => {
   const storage = memory();
-  assert.equal(Storage.createStore(storage).keyTones, false);
-  storage.setItem(Storage.SETTINGS_KEY, JSON.stringify({ top: 5, gameSounds: true, keyTones: true, vibration: true, language: null }));
-  const migrated = Storage.createStore(storage);
-  assert.equal(migrated.keyTones, false);
-  assert.equal(migrated.top, 5);
-  migrated.keyTones = true;
   assert.equal(Storage.createStore(storage).keyTones, true);
+  storage.setItem(Storage.SETTINGS_KEY, JSON.stringify({ top: 5, gameSounds: true, keyTones: false, vibration: true, language: null, keySounds: 2 }));
+  const migrated = Storage.createStore(storage);
+  assert.equal(migrated.keyTones, true);
+  assert.equal(migrated.top, 5);
+  migrated.keyTones = false;
+  assert.equal(Storage.createStore(storage).keyTones, false);
 });

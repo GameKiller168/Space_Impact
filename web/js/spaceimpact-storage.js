@@ -9,7 +9,7 @@
   var Save = common.Save || (typeof require === 'function' ? require('./save.js') : null);
   var SETTINGS_KEY = 'spaceimpact.v1.settings';
   var SAVE_KEY = 'spaceimpact.v1.save';
-  var KEY_SOUNDS_VERSION = 2;
+  var KEY_SOUNDS_VERSION = 3;
 
   function defaultStorage() {
     try { return root.localStorage || null; } catch (ignore) { return null; }
@@ -31,7 +31,7 @@
 
   function createStore(storage) {
     if (storage === undefined) storage = defaultStorage();
-    var data = { top: 0, gameSounds: true, keyTones: false, vibration: true, language: null };
+    var data = { top: 0, gameSounds: true, keyTones: true, vibration: true, language: null };
 
     function copy(value) {
       return { top: value.top, gameSounds: value.gameSounds, keyTones: value.keyTones,
@@ -46,8 +46,8 @@
         var loaded = JSON.parse(raw);
         if (validSettings(loaded)) {
           data = copy(loaded);
-          // Settings saved before key sounds became click-like (and off by default) get the new default once.
-          if (loaded.keySounds !== KEY_SOUNDS_VERSION) data.keyTones = false;
+          // Settings saved before the key sounds became soft clicks (on by default) get the new default once.
+          if (loaded.keySounds !== KEY_SOUNDS_VERSION) data.keyTones = true;
         }
       }
     } catch (ignore) {}
