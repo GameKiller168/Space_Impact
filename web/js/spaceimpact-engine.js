@@ -32,6 +32,7 @@
   var Enemies = ns.Enemies || (req ? require('./spaceimpact-enemies.js') : null);
   var Fire = ns.Fire || (req ? require('./spaceimpact-fire.js') : null);
   var EnemyHits = ns.EnemyHits || (req ? require('./spaceimpact-enemy-hits.js') : null);
+  var Bosses = ns.Bosses || (req ? require('./spaceimpact-bosses.js') : null);
   var Text = common.Text || (req ? require('./text.js') : null);
 
   var TICK_MS = 100, MAX_ACC = 1000;
@@ -99,10 +100,26 @@
     return 0;
   }
 
+  // what the boss routines need from the engine: the size and the touch test of the picture the boss shows on this tick
+  function bossFrame(object) {
+    var list = Classes.frames(object.cls);
+    return list[object.age % list.length];
+  }
+  function bossContext(game) {
+    return {
+      size: function (o) { var img = image(bossFrame(o)); return { w: img.width, h: img.height }; },
+      terrainHit: function (o, y, size) {
+        return TerrainContact.hits(game.level + 1, game.scroll, { x: o.x, y: y, width: size.w, height: size.h, pages: pagesOf(bossFrame(o)) }, true);
+      }
+    };
+  }
+
   function moveObject(game, object) {
     var boss = Classes.isBoss(object.cls);
     if (object.cls === CLASS_BULLET) { object.x -= 3; return; }
     if (boss) {
+      if (Bosses.step(game, object, bossContext(game))) return;
+      object.shoot = undefined;
       if (object.x > object.stop) { object.x -= Math.max(1, object.speed); return; }
       var bottom = 48 - object.h;
       object.y += object.dir;
@@ -110,7 +127,9 @@
       if (object.y >= bottom) { object.y = bottom; object.dir = -1; }
       return;
     }
+    if (object.vm === 24) object.dir = game.bossDir;
     var decoded = Enemies.step(object, game.level, game.ship.y);
+    if (object.vm === 24) game.bossDir = object.dir;
     if (decoded !== null) {
       if (object.x > 127) object.x -= 256;            // the display record holds x as a byte, the picture is drawn with it signed
       if (decoded === false) object.gone = true;
@@ -139,7 +158,7 @@
 
   function newState(seed) {
     return { v: 1, rng: Random.create(seed), level: 0, tick: 1, scroll: 0, wavesLeft: 0, wait: 0, waveIndex: 0, bossSeen: false,
-      mode: 'play', modeTick: 0, ship: { x: START_X, y: START_Y }, lives: START_LIVES, score: 0, guard: SHIELD_TICKS, guardDelay: false, clearArrive: 0,
+      mode: 'play', modeTick: 0, ship: { x: START_X, y: START_Y }, lives: START_LIVES, score: 0, guard: SHIELD_TICKS, guardDelay: false, clearArrive: 0, bossDir: -1,
       weapons: Weapons.initial(), bonus: { type: 10, ammo: 3, shots: [] }, objects: [], nextId: 1, extra: [] };
   }
 
@@ -239,15 +258,23 @@
       for (i = 0; i < this.objects.length; i++) {
         object = this.objects[i];
         if (object.dead) { object.dead += 1; continue; }
+        if (object.skip) { object.skip = 0; continue; }        // a bullet made right behind its shooter is not reached on that tick
         object.age += 1;
         moveObject(this, object);
         if (object.cls === CLASS_BULLET) {
           /* bullets do not shoot */
-        } else if (Enemies.handles(object.vm)) {
+        } else if (Enemies.handles(object.vm) || (Classes.isBoss(object.cls) && object.shoot !== undefined)) {
           // an ordinary enemy shoots by the firmware's rule: the movement mode says when the check runs
           if (!object.gone && (object.shoot === 2 || (object.shoot === 1 && Fire.check(this.rng, object)))) {
             var shot = Fire.shoot(object);
-            if (shot) addObject(this, CLASS_BULLET, shot.x, shot.y, { speed: 3 });
+            if (shot) {
+              // The firmware walks the display list and takes the next entry before it handles the current one. A new object is
+              // put at the end of its layer, so it is reached on the same tick unless the shooter was the last one: then it
+              // comes right behind the shooter and waits for the next tick.
+              var lastOne = i === this.objects.length - 1;
+              var made = addObject(this, CLASS_BULLET, shot.x, shot.y, { speed: 3 });
+              if (made && lastOne) made.skip = 1;
+            }
           }
         } else {
           var rate = Classes.fireRate(object.cls);
@@ -312,7 +339,7 @@
           if (o.x >= 84 || !(shot.x + 2 > o.x && shot.x < o.x + o.w && shot.y >= o.y && shot.y < o.y + o.h)) continue;
           hitSomething = true;
           o.hp -= 1;
-          if (o.hp <= 0) this.kill(o);
+          if (o.hp <= 0) this.kill(o); else this.score = EnemyHits.addScore(this.score, 5);   // a boss hit scores 5, the kill 100
         } else if (EnemyHits.touches({ x: shot.x, y: shot.y, w: 2, h: 1 }, o)) {
           // ordinary enemies: the firmware's rule, first object whose box touches the shot (see spaceimpact-enemy-hits.js)
           hitSomething = true;
@@ -505,7 +532,7 @@
   };
 
   // ---- snapshot ----------------------------------------------------------------------------------------------------
-  var KEYS = ['v', 'rng', 'level', 'tick', 'scroll', 'wavesLeft', 'wait', 'waveIndex', 'bossSeen', 'mode', 'modeTick', 'lives', 'score', 'guard', 'guardDelay', 'nextId', 'clearArrive'];
+  var KEYS = ['v', 'rng', 'level', 'tick', 'scroll', 'wavesLeft', 'wait', 'waveIndex', 'bossSeen', 'mode', 'modeTick', 'lives', 'score', 'guard', 'guardDelay', 'nextId', 'clearArrive', 'bossDir'];
 
   Game.prototype.snapshot = function () {
     var out = {};
@@ -531,6 +558,8 @@
         typeof s.bossSeen !== 'boolean' || ['play', 'dying', 'clear', 'over', 'won'].indexOf(s.mode) < 0 || !isInt(s.modeTick, 0, 1e6) ||
         !isInt(s.lives, 0, MAX_LIVES) || !isInt(s.score, 0, 1e9) || !isInt(s.guard, 0, SHIELD_TICKS) || !isInt(s.nextId, 1, 1e9)) return null;
     if (s.guardDelay !== undefined && typeof s.guardDelay !== 'boolean') return null;
+    if (s.bossDir === undefined) s.bossDir = -1;
+    if (s.bossDir !== 1 && s.bossDir !== -1) return null;
     if (s.clearArrive === undefined) s.clearArrive = 0;
     if (!isInt(s.clearArrive, 0, 1e6)) return null;
     if (!s.ship || !isInt(s.ship.x, -10, 200) || !isInt(s.ship.y, -10, 100)) return null;
