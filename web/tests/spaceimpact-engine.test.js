@@ -188,3 +188,19 @@ test('every frame draws inside the 84 x 48 display and the HUD shows one heart p
   }
   assert.equal(fb.get(18, 1), 0, 'no fourth heart');
 });
+
+test('a held fire key goes on firing past the firmware\'s five repeat messages', () => {
+  const game = Engine.create(7);
+  game.guard = 1e6;                       // untouchable, so that only the fire rule is observed
+  let shots = 0;
+  game.press('1');
+  for (let step = 0; step < 60; step++) {
+    const result = game.advance(100);
+    shots += ((result && result.events) || []).filter((event) => event === 24).length;
+  }
+  assert.ok(shots >= 15, `a held key fired ${shots} times in 60 ticks`);
+  game.release('1');
+  const quiet = [];
+  for (let step = 0; step < 12; step++) quiet.push(...(((game.advance(100) || {}).events) || []).filter((event) => event === 24));
+  assert.ok(quiet.length <= 1, 'releasing the key stops the fire');
+});

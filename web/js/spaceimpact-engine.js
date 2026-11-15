@@ -257,7 +257,12 @@
       if (!Object.prototype.hasOwnProperty.call(this.held, key)) continue;
       this.held[key] += 1;
       if (MOVE_REPEAT[key] && this.held[key] >= REPEAT_AFTER) this.moveShip(MOVE_REPEAT[key]);
-      else if (FIRE_REPEAT[key]) this.fire(FIRE_REPEAT[key]);
+      else if (FIRE_REPEAT[key]) {
+        this.fire(FIRE_REPEAT[key]);
+        // The firmware accepts five repeat messages per press (counter 0x10a202); a held key goes on firing here
+        // with a fresh press message, which restarts that counter. Holding fire is how the game is played.
+        if (this.weapons.repeats >= 5) this.fire(FIRE[key]);
+      }
     }
   };
 
@@ -322,7 +327,6 @@
 
   Game.prototype.beginDying = function () {
     this.mode = 'dying'; this.modeTick = 0;
-    this.held = {};
     this.emit(23); this.emit('vibration');
   };
 
@@ -339,7 +343,6 @@
   Game.prototype.beginClear = function () {
     this.mode = 'clear'; this.modeTick = 0;
     this.objects = [];
-    this.held = {};
   };
 
   Game.prototype.stepClear = function () {
