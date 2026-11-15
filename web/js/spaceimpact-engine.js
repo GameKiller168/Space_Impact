@@ -139,7 +139,7 @@
 
   function newState(seed) {
     return { v: 1, rng: Random.create(seed), level: 0, tick: 1, scroll: 0, wavesLeft: 0, wait: 0, waveIndex: 0, bossSeen: false,
-      mode: 'play', modeTick: 0, ship: { x: START_X, y: START_Y }, lives: START_LIVES, score: 0, guard: SHIELD_TICKS, guardDelay: false,
+      mode: 'play', modeTick: 0, ship: { x: START_X, y: START_Y }, lives: START_LIVES, score: 0, guard: SHIELD_TICKS, guardDelay: false, clearArrive: 0,
       weapons: Weapons.initial(), bonus: { type: 10, ammo: 3, shots: [] }, objects: [], nextId: 1, extra: [] };
   }
 
@@ -420,20 +420,31 @@
     } else { this.mode = 'over'; this.modeTick = 0; this.lives = 0; }
   };
 
+  // The level end, read from the firmware's recordings of all seven levels that have a next level: after the boss is gone the
+  // ship flies one pixel per tick to the top row (y 6, or 16 on the two levels with terrain above), stays there for one more
+  // tick, then flies right with these x positions, one per tick; the tick after the last one the next level starts.
+  var CLEAR_X = [6, 8, 10, 12, 15, 19, 23, 27, 32, 37, 42, 48, 55, 62, 69, 77, 85, 93, 102];
+
   Game.prototype.beginClear = function () {
-    this.mode = 'clear'; this.modeTick = 0;
+    this.mode = 'clear'; this.modeTick = 0; this.clearArrive = 0;
     this.objects = [];
   };
 
   Game.prototype.stepClear = function () {
     this.modeTick += 1;
-    if (this.modeTick < 16) { if (this.ship.y > PLAYFIELD_TOP) this.ship.y -= 1; }
-    else this.ship.x += 3;
-    this.weapons = Weapons.message(this.weapons, 1, this.ship);
-    if (this.ship.x >= 93) {
-      if (this.level + 1 >= LevelData.allLevels.length) { this.mode = 'won'; this.modeTick = 0; }
-      else startLevel(this, this.level + 1);
+    var top = (this.level === 4 || this.level === 5) ? 16 : PLAYFIELD_TOP;
+    if (this.ship.y !== top) {
+      this.ship.y += this.ship.y > top ? -1 : 1;
+      if (this.ship.y === top) this.clearArrive = this.modeTick;
+    } else {
+      var index = this.modeTick - this.clearArrive - 2;
+      if (index >= 0 && index < CLEAR_X.length) this.ship.x = CLEAR_X[index];
+      else if (index >= CLEAR_X.length) {
+        if (this.level + 1 >= LevelData.allLevels.length) { this.mode = 'won'; this.modeTick = 0; }
+        else startLevel(this, this.level + 1);
+      }
     }
+    this.weapons = Weapons.message(this.weapons, 1, this.ship);
   };
 
   Game.prototype.stepEnd = function () {
@@ -494,7 +505,7 @@
   };
 
   // ---- snapshot ----------------------------------------------------------------------------------------------------
-  var KEYS = ['v', 'rng', 'level', 'tick', 'scroll', 'wavesLeft', 'wait', 'waveIndex', 'bossSeen', 'mode', 'modeTick', 'lives', 'score', 'guard', 'guardDelay', 'nextId'];
+  var KEYS = ['v', 'rng', 'level', 'tick', 'scroll', 'wavesLeft', 'wait', 'waveIndex', 'bossSeen', 'mode', 'modeTick', 'lives', 'score', 'guard', 'guardDelay', 'nextId', 'clearArrive'];
 
   Game.prototype.snapshot = function () {
     var out = {};
@@ -520,6 +531,8 @@
         typeof s.bossSeen !== 'boolean' || ['play', 'dying', 'clear', 'over', 'won'].indexOf(s.mode) < 0 || !isInt(s.modeTick, 0, 1e6) ||
         !isInt(s.lives, 0, MAX_LIVES) || !isInt(s.score, 0, 1e9) || !isInt(s.guard, 0, SHIELD_TICKS) || !isInt(s.nextId, 1, 1e9)) return null;
     if (s.guardDelay !== undefined && typeof s.guardDelay !== 'boolean') return null;
+    if (s.clearArrive === undefined) s.clearArrive = 0;
+    if (!isInt(s.clearArrive, 0, 1e6)) return null;
     if (!s.ship || !isInt(s.ship.x, -10, 200) || !isInt(s.ship.y, -10, 100)) return null;
     var bonus = s.bonus === undefined ? { type: 10, ammo: 3, shots: [] } : s.bonus;
     if (!bonus || [9, 10, 22].indexOf(bonus.type) < 0 || !isInt(bonus.ammo, -128, 127) || !Array.isArray(bonus.shots) || bonus.shots.length > 40) return null;

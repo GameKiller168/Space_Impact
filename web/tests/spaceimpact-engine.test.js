@@ -210,3 +210,23 @@ test('a held fire key goes on firing past the firmware\'s five repeat messages',
   for (let step = 0; step < 12; step++) game.advance(100);
   assert.equal(shots, released, 'releasing the key stops the fire');
 });
+
+test('the ship leaves a finished level exactly as in the firmware, on all seven levels that have a next one', () => {
+  const ends = require('./fixtures/spaceimpact-level-end.json');
+  assert.equal(ends.levels.length, 7);
+  for (const entry of ends.levels) {
+    const game = Engine.create(3);
+    Engine.startLevel(game, entry.level - 1);
+    game.ship = { x: entry.ship[0][0], y: entry.ship[0][1] };
+    game.beginClear();
+    for (let k = 1; k < entry.ship.length; k++) {
+      game.advance(100);
+      assert.deepEqual([game.ship.x, game.ship.y], entry.ship[k], `level ${entry.level}, tick ${k}`);
+      assert.equal(game.level, entry.level - 1, `level ${entry.level}, tick ${k}: still the same level`);
+    }
+    game.advance(100);
+    assert.equal(game.level, entry.level, `level ${entry.level}: the next level starts on the tick after the last position`);
+    assert.deepEqual([game.ship.x, game.ship.y], entry.next_level_start);
+    assert.ok(game.guard > 0, 'with the start shield');
+  }
+});
