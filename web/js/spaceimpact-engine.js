@@ -31,7 +31,7 @@
   var SHIP_FRAME = 0, HEART = 79, SHIELD_FRAMES = [56, 57], BULLET_FRAME = 17;
   var SHIP_EXPLOSION = [18, 18, 19, 18, 21];          // descriptor per tick, then the life is lost (firmware recovery stages)
   var ENEMY_EXPLOSION = [18, 19, 20, 21];
-  var OVER_TICKS = 12, OVER_TEXT_TICKS = 28, WON_TICKS = 40, REPEAT_AFTER = 3, MAX_OBJECTS = 80;
+  var OVER_TICKS = 12, WON_TICKS = 40, REPEAT_AFTER = 3, MAX_OBJECTS = 80;
   var PLAYFIELD_TOP = 6, PLAYFIELD_BOTTOM = 41, CLASS_BULLET = 4, CLASS_EXPLOSION = 2;
   var images = Assets.images, pagesCache = {};
 
@@ -184,7 +184,7 @@
   Game.prototype.flush = function () {
     var out = {};
     if (this.events.length) { out.events = this.events; this.events = []; }
-    if (this.result) { out.ended = true; out.score = this.result.score; }
+    if (this.result) { out.ended = true; out.score = this.result.score; if (this.result.won) out.won = true; }
     return out.events || out.ended ? out : null;
   };
 
@@ -358,16 +358,14 @@
 
   Game.prototype.stepEnd = function () {
     this.modeTick += 1;
-    if (this.mode === 'over' && this.modeTick >= OVER_TICKS + OVER_TEXT_TICKS) this.result = { score: this.score };
-    if (this.mode === 'won' && this.modeTick >= WON_TICKS) this.result = { score: this.score + 1000 };
+    if (this.mode === 'over' && this.modeTick >= OVER_TICKS) this.result = { score: this.score };
+    if (this.mode === 'won' && this.modeTick >= WON_TICKS) this.result = { score: this.score + 1000, won: true };
   };
 
   // ---- drawing -----------------------------------------------------------------------------------------------------
   Game.prototype.draw = function (fb) {
     fb.clear();
     var i, o, bytes, originY, bit;
-    if (this.mode === 'over' && this.modeTick >= OVER_TICKS) { this.drawNote(fb, ['GAME OVER', String(this.score)]); return fb; }
-    if (this.mode === 'won') { this.drawNote(fb, ['YOU WON!', String(this.score + 1000)]); return fb; }
     if (this.level >= 0) {
       bytes = Terrain.renderBytes(this.level + 1, this.scroll); originY = Terrain.originY(this.level + 1);
       for (var page = 0; page < 2; page++) for (var x = 0; x < 84; x++) {

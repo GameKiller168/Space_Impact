@@ -17,7 +17,7 @@
     },
     pad: document.getElementById('keys'),
     paint: function (fb) { lcd.draw(fb); },
-    instructions: function () { return SI.Texts.instructions(); },
+    instructions: function (language) { return SI.Texts.instructions(NS.I18n.resolve(language)); },
     audio: audio,
     store: store,
     storage: storage,
