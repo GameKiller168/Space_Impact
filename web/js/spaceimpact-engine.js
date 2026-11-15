@@ -32,6 +32,7 @@
   var Enemies = ns.Enemies || (req ? require('./spaceimpact-enemies.js') : null);
   var Fire = ns.Fire || (req ? require('./spaceimpact-fire.js') : null);
   var EnemyHits = ns.EnemyHits || (req ? require('./spaceimpact-enemy-hits.js') : null);
+  var Bosses = ns.Bosses || (req ? require('./spaceimpact-bosses.js') : null);
   var Text = common.Text || (req ? require('./text.js') : null);
 
   var TICK_MS = 100, MAX_ACC = 1000;
@@ -44,6 +45,8 @@
   var images = Assets.images, pagesCache = {};
 
   function image(index) { return images[index]; }
+  function blitIndex(fb, index, x, y, opaque) { return Render.blit(fb, images[index], x, y, opaque, Render.NEGATIVE[index] === true); }
+  function shipPicture(level) { return level === 0 ? 0 : 1; }          // the ship has its own picture on level 1
   function pagesOf(index) {
     if (!pagesCache[index]) pagesCache[index] = Contact.pagesFromRows(images[index].rows);
     return pagesCache[index];
@@ -78,7 +81,7 @@
       if (boss) y = Math.max(PLAYFIELD_TOP, Math.min(y, 48 - sizeOf(cls).h));
       var object = addObject(game, cls, 84 + spacing * i, y, { hp: Math.max(1, hp), vm: vm, speed: speed, y0: y,
         phase: 0, dir: vm === 24 ? -1 : (cls & 1) ? -1 : 1, stop: boss ? Classes.stopX(cls) : 0, div: record[7], ammo: record[8] });
-      if (object && boss) game.bossSeen = true;
+      if (object && boss) { game.bossSeen = true; game.bossState = 1; }
     }
   }
 
@@ -99,10 +102,47 @@
     return 0;
   }
 
+  // what the boss routines need from the engine: the size and the touch test of the picture the boss shows on this tick
+  function bossFrame(object) {
+    var list = Classes.frames(object.cls);
+    return list[object.age % list.length];
+  }
+  // what a new object does to the display list: the firmware takes the next entry before it handles the current one, and a new
+  // object stands at the end of its layer, so it is reached on the same tick unless its shooter was the last entry: then it comes
+  // right behind it and waits for the next tick.
+  var SPECIAL_SHOTS = { 21: { hp: 2, vm: 3, speed: 3 }, 16: { hp: 1, vm: 6, speed: 2 }, 14: { hp: 1, vm: 6, speed: 2 }, 6: { hp: 1, vm: 14, speed: 2 } };
+  function makeObject(game, shooter, cls, x, y, extra) {
+    var lastOne = game.objects.indexOf(shooter) === game.objects.length - 1;
+    var made = addObject(game, cls, x, y, extra);
+    if (made && lastOne) made.skip = 1;
+    return made;
+  }
+  function bossContext(game) {
+    return {
+      size: function (o) { var img = image(bossFrame(o)); return { w: img.width, h: img.height }; },
+      classSize: function (cls) { return sizeOf(cls); },
+      terrainHit: function (o, y, size) {
+        return TerrainContact.hits(game.level + 1, game.scroll, { x: o.x, y: y, width: size.w, height: size.h, pages: pagesOf(bossFrame(o)) }, true);
+      },
+      check: function (o) { return Fire.check(game.rng, o); },
+      fire: function (o, y, h) {
+        if (!Fire.check(game.rng, o)) return;
+        var shot = Fire.shoot({ x: o.x, y: y, h: h, cls: o.cls, ammo: o.ammo, shootY: -1 });
+        if (shot) makeObject(game, o, CLASS_BULLET, shot.x, shot.y, { speed: 3 });
+      },
+      spawn: function (o, cls, x, y) {
+        var t = SPECIAL_SHOTS[cls];
+        makeObject(game, o, cls, x, y, { hp: t.hp, vm: t.vm, speed: t.speed, y0: y, div: 127, ammo: 0 });
+      }
+    };
+  }
+
   function moveObject(game, object) {
     var boss = Classes.isBoss(object.cls);
     if (object.cls === CLASS_BULLET) { object.x -= 3; return; }
     if (boss) {
+      if (Bosses.step(game, object, bossContext(game))) return;
+      object.shoot = undefined;
       if (object.x > object.stop) { object.x -= Math.max(1, object.speed); return; }
       var bottom = 48 - object.h;
       object.y += object.dir;
@@ -110,7 +150,9 @@
       if (object.y >= bottom) { object.y = bottom; object.dir = -1; }
       return;
     }
+    if (object.vm === 24) object.dir = game.bossDir;
     var decoded = Enemies.step(object, game.level, game.ship.y);
+    if (object.vm === 24) game.bossDir = object.dir;
     if (decoded !== null) {
       if (object.x > 127) object.x -= 256;            // the display record holds x as a byte, the picture is drawn with it signed
       if (decoded === false) object.gone = true;
@@ -139,7 +181,7 @@
 
   function newState(seed) {
     return { v: 1, rng: Random.create(seed), level: 0, tick: 1, scroll: 0, wavesLeft: 0, wait: 0, waveIndex: 0, bossSeen: false,
-      mode: 'play', modeTick: 0, ship: { x: START_X, y: START_Y }, lives: START_LIVES, score: 0, guard: SHIELD_TICKS, guardDelay: false,
+      mode: 'play', modeTick: 0, ship: { x: START_X, y: START_Y }, lives: START_LIVES, score: 0, guard: SHIELD_TICKS, guardDelay: false, clearArrive: 0, bossDir: -1, bossState: 1, bossCool: 0,
       weapons: Weapons.initial(), bonus: { type: 10, ammo: 3, shots: [] }, objects: [], nextId: 1, extra: [] };
   }
 
@@ -223,7 +265,8 @@
     this.tick += 1;
     var wasDying = this.mode === 'dying';
     if (this.mode === 'play' || this.mode === 'dying') {
-      if (!this.bossPresent()) this.scroll = (this.scroll + 1) % 512;
+      // the terrain stops when the last wave has been sent and the boss is there (level 6 keeps scrolling until its two empty records are used up)
+      if (!(this.bossPresent() && this.wavesLeft <= 0)) this.scroll = (this.scroll + 1) % 512;
       // spawn
       if (this.waveIndex < data.waveRecords.length) {
         this.wait -= 1;
@@ -239,15 +282,18 @@
       for (i = 0; i < this.objects.length; i++) {
         object = this.objects[i];
         if (object.dead) { object.dead += 1; continue; }
+        if (object.skip) { object.skip = 0; continue; }        // a bullet made right behind its shooter is not reached on that tick
         object.age += 1;
         moveObject(this, object);
         if (object.cls === CLASS_BULLET) {
           /* bullets do not shoot */
-        } else if (Enemies.handles(object.vm)) {
+        } else if (Enemies.handles(object.vm) || (Classes.isBoss(object.cls) && object.shoot !== undefined)) {
           // an ordinary enemy shoots by the firmware's rule: the movement mode says when the check runs
           if (!object.gone && (object.shoot === 2 || (object.shoot === 1 && Fire.check(this.rng, object)))) {
             var shot = Fire.shoot(object);
-            if (shot) addObject(this, CLASS_BULLET, shot.x, shot.y, { speed: 3 });
+            if (shot) {
+              makeObject(this, object, CLASS_BULLET, shot.x, shot.y, { speed: 3 });
+            }
           }
         } else {
           var rate = Classes.fireRate(object.cls);
@@ -312,7 +358,7 @@
           if (o.x >= 84 || !(shot.x + 2 > o.x && shot.x < o.x + o.w && shot.y >= o.y && shot.y < o.y + o.h)) continue;
           hitSomething = true;
           o.hp -= 1;
-          if (o.hp <= 0) this.kill(o);
+          if (o.hp <= 0) this.kill(o); else this.score = EnemyHits.addScore(this.score, 5);   // a boss hit scores 5, the kill 100
         } else if (EnemyHits.touches({ x: shot.x, y: shot.y, w: 2, h: 1 }, o)) {
           // ordinary enemies: the firmware's rule, first object whose box touches the shot (see spaceimpact-enemy-hits.js)
           hitSomething = true;
@@ -420,20 +466,31 @@
     } else { this.mode = 'over'; this.modeTick = 0; this.lives = 0; }
   };
 
+  // The level end, read from the firmware's recordings of all seven levels that have a next level: after the boss is gone the
+  // ship flies one pixel per tick to the top row (y 6, or 16 on the two levels with terrain above), stays there for one more
+  // tick, then flies right with these x positions, one per tick; the tick after the last one the next level starts.
+  var CLEAR_X = [6, 8, 10, 12, 15, 19, 23, 27, 32, 37, 42, 48, 55, 62, 69, 77, 85, 93, 102];
+
   Game.prototype.beginClear = function () {
-    this.mode = 'clear'; this.modeTick = 0;
+    this.mode = 'clear'; this.modeTick = 0; this.clearArrive = 0;
     this.objects = [];
   };
 
   Game.prototype.stepClear = function () {
     this.modeTick += 1;
-    if (this.modeTick < 16) { if (this.ship.y > PLAYFIELD_TOP) this.ship.y -= 1; }
-    else this.ship.x += 3;
-    this.weapons = Weapons.message(this.weapons, 1, this.ship);
-    if (this.ship.x >= 93) {
-      if (this.level + 1 >= LevelData.allLevels.length) { this.mode = 'won'; this.modeTick = 0; }
-      else startLevel(this, this.level + 1);
+    var top = (this.level === 4 || this.level === 5) ? 16 : PLAYFIELD_TOP;
+    if (this.ship.y !== top) {
+      this.ship.y += this.ship.y > top ? -1 : 1;
+      if (this.ship.y === top) this.clearArrive = this.modeTick;
+    } else {
+      var index = this.modeTick - this.clearArrive - 2;
+      if (index >= 0 && index < CLEAR_X.length) this.ship.x = CLEAR_X[index];
+      else if (index >= CLEAR_X.length) {
+        if (this.level + 1 >= LevelData.allLevels.length) { this.mode = 'won'; this.modeTick = 0; }
+        else startLevel(this, this.level + 1);
+      }
     }
+    this.weapons = Weapons.message(this.weapons, 1, this.ship);
   };
 
   Game.prototype.stepEnd = function () {
@@ -455,28 +512,28 @@
     }
     for (i = 0; i < this.objects.length; i++) {
       o = this.objects[i];
-      if (o.dead) Render.blit(fb, image(o.killFrame !== undefined && o.killFrame >= 0 ? EnemyHits.explosionFrame(o.killFrame, Math.min(o.dead, ENEMY_EXPLOSION.length)) : ENEMY_EXPLOSION[Math.min(o.dead - 1, ENEMY_EXPLOSION.length - 1)]), o.x, o.y, false);
-      else Render.blit(fb, image(o.cls === CLASS_BULLET ? BULLET_FRAME : frameOf(o)), o.x, o.y, false);
+      if (o.dead) blitIndex(fb, o.killFrame !== undefined && o.killFrame >= 0 ? EnemyHits.explosionFrame(o.killFrame, Math.min(o.dead, ENEMY_EXPLOSION.length)) : ENEMY_EXPLOSION[Math.min(o.dead - 1, ENEMY_EXPLOSION.length - 1)], o.x, o.y, false);
+      else blitIndex(fb, o.cls === CLASS_BULLET ? BULLET_FRAME : frameOf(o), o.x, o.y, false);
     }
     for (i = 0; i < this.bonus.shots.length; i++) {
       var bonusShot = this.bonus.shots[i], visual = Bonus.display(bonusShot);
       if (bonusShot.type === 22) fb.fillRect(visual.x, visual.y, 1, Math.max(0, visual.endY - visual.y), 1);
       else {
         var spriteIndex = bonusShot.type === 10 ? 8 : (bonusShot.age === 0 ? 10 : (bonusShot.age === 1 || bonusShot.age === 5 ? 11 : 12));
-        Render.blit(fb, image(spriteIndex), visual.x, visual.y, false);
+        blitIndex(fb, spriteIndex, visual.x, visual.y, false);
       }
     }
     for (i = 0; i < this.weapons.shots.length; i++) fb.fillRect(this.weapons.shots[i].x, this.weapons.shots[i].y, 2, 1, 1);
-    if (this.mode === 'dying') Render.blit(fb, image(SHIP_EXPLOSION[Math.min(this.modeTick, SHIP_EXPLOSION.length - 1)]), this.ship.x, this.ship.y, false);
+    if (this.mode === 'dying') blitIndex(fb, SHIP_EXPLOSION[Math.min(this.modeTick, SHIP_EXPLOSION.length - 1)], this.ship.x, this.ship.y, false);
     else if (this.mode !== 'over') {
-      Render.blit(fb, image(SHIP_FRAME), this.ship.x, this.ship.y, true);
-      if (this.guard > 0 && this.mode === 'play') Render.blit(fb, image(SHIELD_FRAMES[this.tick % 2]), this.ship.x - 2, this.ship.y - 2, false);
+      blitIndex(fb, shipPicture(this.level), this.ship.x, this.ship.y, false);
+      if (this.guard > 0 && this.mode === 'play') blitIndex(fb, SHIELD_FRAMES[this.tick % 2], this.ship.x - 2, this.ship.y - 2, false);
     }
     // 0x257798 lays out the HUD at y=0, or y=43 when the terrain is above the ship.
     var hudY = (this.level === 4 || this.level === 5) ? 43 : 0;
     fb.clearRect(0, hudY, 84, 5);
-    for (i = 0; i < this.lives && i < MAX_LIVES; i++) Render.blit(fb, image(HEART), i * 6, hudY, true);
-    Render.blit(fb, image(this.bonus.type === 10 ? 81 : (this.bonus.type === 9 ? 82 : 83)), 36, hudY, true);
+    for (i = 0; i < this.lives && i < MAX_LIVES; i++) blitIndex(fb, HEART, i * 6, hudY, true);
+    blitIndex(fb, this.bonus.type === 10 ? 81 : (this.bonus.type === 9 ? 82 : 83), 36, hudY, true);
     if (Font) {
       var ammo = Math.max(0, this.bonus.ammo) % 100;
       Font.drawDigit(fb, Math.floor(ammo / 10), 42, hudY); Font.drawDigit(fb, ammo % 10, 46, hudY);
@@ -494,7 +551,7 @@
   };
 
   // ---- snapshot ----------------------------------------------------------------------------------------------------
-  var KEYS = ['v', 'rng', 'level', 'tick', 'scroll', 'wavesLeft', 'wait', 'waveIndex', 'bossSeen', 'mode', 'modeTick', 'lives', 'score', 'guard', 'guardDelay', 'nextId'];
+  var KEYS = ['v', 'rng', 'level', 'tick', 'scroll', 'wavesLeft', 'wait', 'waveIndex', 'bossSeen', 'mode', 'modeTick', 'lives', 'score', 'guard', 'guardDelay', 'nextId', 'clearArrive', 'bossDir', 'bossState', 'bossCool'];
 
   Game.prototype.snapshot = function () {
     var out = {};
@@ -520,6 +577,13 @@
         typeof s.bossSeen !== 'boolean' || ['play', 'dying', 'clear', 'over', 'won'].indexOf(s.mode) < 0 || !isInt(s.modeTick, 0, 1e6) ||
         !isInt(s.lives, 0, MAX_LIVES) || !isInt(s.score, 0, 1e9) || !isInt(s.guard, 0, SHIELD_TICKS) || !isInt(s.nextId, 1, 1e9)) return null;
     if (s.guardDelay !== undefined && typeof s.guardDelay !== 'boolean') return null;
+    if (s.bossState === undefined) s.bossState = 1;
+    if (s.bossCool === undefined) s.bossCool = 0;
+    if (!isInt(s.bossState, 0, 127) || !isInt(s.bossCool, 0, 6)) return null;
+    if (s.bossDir === undefined) s.bossDir = -1;
+    if (s.bossDir !== 1 && s.bossDir !== -1) return null;
+    if (s.clearArrive === undefined) s.clearArrive = 0;
+    if (!isInt(s.clearArrive, 0, 1e6)) return null;
     if (!s.ship || !isInt(s.ship.x, -10, 200) || !isInt(s.ship.y, -10, 100)) return null;
     var bonus = s.bonus === undefined ? { type: 10, ammo: 3, shots: [] } : s.bonus;
     if (!bonus || [9, 10, 22].indexOf(bonus.type) < 0 || !isInt(bonus.ammo, -128, 127) || !Array.isArray(bonus.shots) || bonus.shots.length > 40) return null;

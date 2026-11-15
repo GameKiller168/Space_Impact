@@ -24,7 +24,9 @@
     if (!Classes.isBoss(object.cls) && object.ammo === 0) return null;
     if (x > 84) return null;
     object.ammo = (object.ammo + 255) & 255;
-    return { x: x - 2, y: object.y + (object.h >> 1) };
+    // a boss or mini-boss shoots before its move: its old y and the height of its picture
+    var y = object.shootY >= 0 ? object.shootY : object.y, h = object.shootY >= 0 && object.shootH > 0 ? object.shootH : object.h;
+    return { x: x - 2, y: y + (h >> 1) };
   }
 
   ns.Fire = { check: check, shoot: shoot };

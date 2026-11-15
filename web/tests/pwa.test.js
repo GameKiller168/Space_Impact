@@ -12,7 +12,7 @@ const manifest = JSON.parse(fs.readFileSync(path.join(web, 'manifest.webmanifest
 const workerCode = fs.readFileSync(path.join(web, 'sw.js'), 'utf8');
 const sprites = require('../js/spaceimpact-assets.js').images;
 const base = 'https://example.test/projects/space-impact/';
-const cacheName = 'space-impact-v0.2.0-beta.2';
+const cacheName = 'space-impact-v0.2.0-beta.3';
 
 function pngInfo(file) {
   const bytes = fs.readFileSync(file);
@@ -102,18 +102,19 @@ test('icons use crisp LCD colors and maskable artwork fits the safe circle', () 
 
     // Read the logical LCD scene back from the PNG and compare its pixels to
     // the source bitmaps, including both separate shots.
-    const scale = { 'icon-192.png': 5, 'icon-512.png': 14, 'maskable-192.png': 4,
-      'maskable-512.png': 12, 'apple-touch-icon.png': 5 }[name];
+    const scale = { 'icon-192.png': 5, 'icon-512.png': 14, 'maskable-192.png': 3,
+      'maskable-512.png': 10, 'apple-touch-icon.png': 5 }[name];
     const left = Math.floor((info.width - 31 * scale) / 2);
-    const top = Math.floor((info.height - 7 * scale) / 2);
-    const scene = Array.from({ length: 7 }, () => Array(31).fill('.'));
-    for (const [sprite, atX, atY] of [[sprites[0], 0, 0], [sprites[17], 12, 3],
-      [sprites[17], 16, 3], [sprites[4], 20, 1]]) {
+    const top = Math.floor((info.height - 23 * scale) / 2);
+    const scene = Array.from({ length: 23 }, () => Array(31).fill('.'));
+    // the level 1 boss is stored as a negative: its figure is the clear bits
+    for (const [sprite, atX, atY, negative] of [[sprites[27], 11, 0, true], [sprites[1], 0, 8, false],
+      [sprites[17], 11, 11, false], [sprites[17], 15, 11, false]]) {
       sprite.rows.forEach((row, y) => Array.from(row).forEach((pixel, x) => {
-        if (pixel === '#') scene[atY + y][atX + x] = '#';
+        if (pixel === (negative ? '.' : '#')) scene[atY + y][atX + x] = '#';
       }));
     }
-    for (let y = 0; y < 7; y++) {
+    for (let y = 0; y < 23; y++) {
       for (let x = 0; x < 31; x++) {
         const sampleX = left + x * scale + Math.floor(scale / 2);
         const sampleY = top + y * scale + Math.floor(scale / 2);

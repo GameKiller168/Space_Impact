@@ -7,10 +7,10 @@ require('./support/locale.js');
  * tools/spaceimpact_record_fire.py): the 159 isolated ordinary wave records, ship parked and unhurtable. On every tick the
  * enemy bullets on the display and the state of the effects generator (one draw per shot check) must equal the firmware's.
  *
- * For 133 records that holds for the whole record. For 26 it holds up to a "stop" tick that the fixture names; there the
+ * For 139 records that holds for the whole record. For 20 it holds up to a "stop" tick that the fixture names; there the
  * recording diverges because of something this test does not model: a bullet that reaches the parked ship or its start shield,
- * the ship object itself disappearing in the recording, or whether a bullet is moved on the tick it is made when the shooter
- * is one of the mini-bosses. Those ticks are left out of the comparison on purpose.
+ * or the ship object itself disappearing in the recording. Those ticks are left out of the comparison on purpose. (A bullet that is
+ * made right behind its shooter in the display list is not moved on that tick; that is modelled.)
  */
 
 const test = require('node:test');
@@ -48,5 +48,5 @@ test('ordinary enemies shoot at the same ticks, from the same places and with th
     if (c.stop === null) whole += 1;
   }
   assert.ok(shots > 500, `${shots} bullet positions compared`);
-  assert.equal(whole, 133);
+  assert.equal(whole, 139);
 });

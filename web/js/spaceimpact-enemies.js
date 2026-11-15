@@ -23,7 +23,7 @@
   // the code of each mode (0x258d8e, 0x258d18, 0x25924c, 0x259190, 0x25903c, 0x25871c).
   function step(o, level, shipY) {
     var vm = o.vm, speed = o.speed, b = bounds(level), x = o.x & 255, y = o.y & 255;
-    o.shoot = 0;
+    o.shoot = 0; o.shootY = -1;
     if (vm === 6) {
       if (gone(x)) return false;
       o.x = (x - speed) & 255;
@@ -33,7 +33,11 @@
     if (vm === 7) {
       if (gone(x)) return false;
       if (x >= 40 && x <= 42) {
-        if (y > b.top + speed) { y -= speed; if (y === (shipY & 255)) o.shoot = 2; }   // sweeping up, it shoots when it passes the ship's height
+        if (y > b.top + speed) {                                             // sweeping up, it shoots when it passes the ship's height
+          var before = y;
+          y -= speed;
+          if (y === (shipY & 255)) { o.shoot = 2; o.shootY = before; o.shootH = o.h; }     // the shot is made before the move
+        }
         else x -= speed;
       } else if (x < 40) {
         x -= speed;
@@ -86,7 +90,7 @@
       // 7..37 on level 5); the firmware takes them from its terrain routine, which is not decoded.
       var limits = level === 4 ? [7, 37] : [6, 37];
       if (x > 56) { o.x = (x - 1) & 255; return true; }
-      o.shoot = 1;
+      o.shoot = 1; o.shootY = y; o.shootH = o.h;              // it shoots before its move
       var dir = o.dir === 1 ? 1 : -1;
       y += dir;
       if (y <= limits[0]) { y = limits[0]; dir = 1; } else if (y >= limits[1]) { y = limits[1]; dir = -1; }

@@ -8,8 +8,10 @@
   var ns = (root.SpaceImpact = root.SpaceImpact || {});
   var Terrain = root.SpaceImpactTerrain || (typeof require === 'function' ? require('./spaceimpact-terrain.js') : null);
 
-  function hits(level, scroll, ship) {
-    if (level === 2) return false;
+  // The ship's own contact skips level 2 (the call at 0x259d5a is bypassed there); the routine itself works on every level, and the
+  // bosses' bounce uses it on level 2 as well (always = true).
+  function hits(level, scroll, ship, always) {
+    if (level === 2 && !always) return false;
     var terrain = Terrain.renderBytes(level, scroll), origin = Terrain.originY(level);
     var y = ship.y & 255, baseX = ship.x & 255;
     var first = Math.max(0, origin - y), last = Math.min(ship.height, origin + 16 - y);
