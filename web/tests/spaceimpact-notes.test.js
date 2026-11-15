@@ -93,3 +93,19 @@ test('the top score entry shows the stored score in a note', () => {
   phone.press('2');
   assert.equal(phone.mode, 'menu');
 });
+
+test('every note can be drawn in every language of the page without an error, and it puts pixels on the display', () => {
+  const I18n = require('../js/i18n.js');
+  for (const { code } of I18n.LANGUAGES) {
+    for (const [key, params] of [['TOP_SCORE_NOTE', { n: 1234 }], ['GAME_OVER_TOP', { n: 99 }], ['GAME_OVER_SCORE', { n: 7 }], ['YOU_WON', undefined]]) {
+      const store = Storage.createStore(null);
+      store.language = code;
+      const phone = new Phone({ engine: adapter(null), store });
+      phone.showNotes([{ key, params }]);
+      const fb = phone.draw();
+      let lit = 0;
+      for (let y = 0; y < 48; y++) for (let x = 0; x < 84; x++) if (fb.get(x, y)) lit += 1;
+      assert.ok(lit > 40, `${code} ${key}: ${lit} pixels`);
+    }
+  }
+});

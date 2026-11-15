@@ -1,7 +1,7 @@
 {
   "name": "Space Impact",
   "short_name": "Space Impact",
-  "description": "A fan-made browser recreation of the Nokia 3310 game Space Impact.",
+  "description": "A fan-made browser recreation of the Nokia 3310 game Space Impact (beta).",
   "id": "./",
   "start_url": "./",
   "scope": "./",

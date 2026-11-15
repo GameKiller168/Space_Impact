@@ -192,7 +192,7 @@
   Phone.prototype.draw = function () {
     Text.setFontPack(I18n.fontPack(this.store.language));
     if (this.mode === 'game') { this.game.draw(this.fb); return this.fb; }
-    if (this.mode === 'note') return Screens.drawNote(this.fb, Screens.noteLines(this.t(this.note.key, this.note.params)));
+    if (this.mode === 'note') return Screens.drawNote(this.fb, Screens.noteLines(this.t(this.note.key, this.note.params), {}));
     if (this.mode === 'instructions') return Screens.drawInstructions(this.fb, this.page, this.instructions(this.store.language), this.t('NEXT'), I18n.resolve(this.store.language) !== 'en');
     var entries = this.entries(), state = this.states[this.kind];
     return Screens.drawMenu(this.fb, { items: entries.map(function (e) { return e.label; }),

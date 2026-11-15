@@ -25,3 +25,9 @@ The system dispatcher maps the main timer to app message `1` and the secondary t
 The first three wave records have been observed to use bytes 0, 1, 2, 3, 5 and 6 as count, sprite type, horizontal spacing, speed, delay until the next wave, and starting y. Their remaining fields, later enemy behaviors, interactions and collisions remain to be determined. The initial wave trace does not establish whole-level accuracy.
 
 `spaceimpact_record_schedule.py` records the wave schedule of all eight levels from the firmware oracle (a bot that only shoots bosses, with ship contact patched out in a private copy of the flash) and writes `web/tests/fixtures/spaceimpact-schedule.json`, which the engine test uses to prove the schedule. It needs the local firmware path like the other tools.
+
+Further tools (all take `--flash`):
+
+- `spaceimpact_record_enemies.py` records every ordinary wave record in isolation (`web/tests/fixtures/spaceimpact-enemies.json`); `spaceimpact_record_fire.py` records enemy bullets, the shot-check calls and the random draws of the same cases (the compact fixture `spaceimpact-enemy-fire.json` was derived from it); `spaceimpact_record_hits.py` records the ship's shots against ordinary enemies; `spaceimpact_record_bosses.py` records the eight boss fights and the level ends.
+- `spaceimpact_generate_terrain_contact.py` records the terrain-contact routine `0x2e7036`.
+- `spaceimpact_extract_texts.py` and `spaceimpact_generate_texts.py` read the text tables of the image and the language packs (`--ppm-dir`) and write `web/js/spaceimpact-texts.js`.
