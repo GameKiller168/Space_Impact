@@ -51,3 +51,11 @@ The English PPM help text and the actual handler at `0x257e1c` agree: keys `8` a
 - Integrate and verify saving, language strings, menus, input, and settings with the actual engine.
 - Add Space Impact-specific oracle tests and run all eight levels through completion.
 - Build, review, commit, push, and tag a release after those checks pass.
+
+## Engine v0.1 (`spaceimpact-engine.js`, playable on the page)
+
+Verified against the firmware (tests in `web/tests`): the 100 ms tick; the wave schedule of all eight levels (first wave 20 ticks after level start, then the record's delay byte; fixture `spaceimpact-schedule.json`, recorded with `tools/spaceimpact_record_schedule.py`); first-wave spawn positions and straight flight; ship movement and main shot; ship contact with enemies (`spaceimpact-contact.js`); explosion, respawn and shield; terrain compositing; the class-to-sprite table; hit points from the wave records.
+
+Approximated, not verified: enemy vertical movement; enemy fire rate and origin; boss routines; points for classes never seen shot; pickup effect (+1 life up to 5, else +50); terrain deaths on levels 2-8 (pixel overlap of ship and terrain ink; the firmware test at `0x2e7036` is not decoded); the final boss's turrets (omitted); the level-end sequence motion; bonus weapons (keys 4/6 do nothing). Held fire and movement keys are cleared on death and level change, so the player must press fire again.
+
+Play-test (browser, 2026-11): menu, new game, movement, fire, death and respawn, game over, pause/continue, reload restore and mobile layout work; a scripted invulnerable bot reaches level 8 without console errors. Sounds and vibration were not heard or felt in this test. Nothing here has been compared with a real phone.

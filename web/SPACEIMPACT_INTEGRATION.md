@@ -1,6 +1,6 @@
 # Space Impact shell integration
 
-The shell is prepared for a Space Impact engine but is not connected to the current Snake II page. `spaceimpact-phone.js` contains no game rules, and the current test adapter is only a test double.
+The shell is wired to the page: `web/index.html` loads the shared modules, the `spaceimpact-*` modules and `js/spaceimpact-main.js`, which connects `SpaceImpact.Engine` (v0.1), the Space Impact tones and texts, storage and the LCD. `js/main.js` and `js/notice.js` (Snake II) are no longer loaded but stay for the tests. `spaceimpact-phone.js` contains no game rules.
 
 Load the shared framebuffer, fonts, text, screens, localization, input and save modules first; then load `spaceimpact-storage.js`, `spaceimpact-phone.js` and `spaceimpact-app.js`. Supply an engine adapter with `create()` and `restore(snapshot)`. Both return a game with `advance(ms)`, `press(key)`, `draw(framebuffer)` and `snapshot()`. The game may also provide `release(key)`. `advance`, `press` and `release` may return `{ events: [...] }` and/or `{ ended: true, score: number }`. The adapter must validate the full game snapshot in `restore` and return a falsy value when it cannot restore it.
 
