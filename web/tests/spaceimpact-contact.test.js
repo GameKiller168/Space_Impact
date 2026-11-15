@@ -156,3 +156,34 @@ test('the other object\'s box is read as signed bytes and its bitmap bytes are n
   assert.throws(() => Contact.shipContact(ship, [Object.assign({}, left, { class: 5 })], state), RangeError);
   assert.throws(() => Contact.shipContact(ship, [other({ class: 5, pages: [] }, ['..'])], state), RangeError);
 });
+
+test('object-contact modes, guard and phase gate match isolated firmware calls on several levels', () => {
+  const modes = require('./fixtures/spaceimpact-contact-modes.json');
+  let hits = 0, pickups = 0;
+  for (const sample of modes.cases) {
+    const ship = Object.assign({}, sample.ship, { pages: pagesOf(sample.ship) });
+    const other = Object.assign({}, sample.object, { pages: pagesOf(sample.object) });
+    const actual = Contact.shipContact(ship, [other], { mode: sample.mode, guard: sample.guard, phase: sample.phase });
+    assert.equal(actual.outcome, sample.outcome, JSON.stringify(sample));
+    if (sample.outcome === 'hit') hits++;
+    if (sample.outcome === 'pickup') pickups++;
+  }
+  assert.ok(hits > 0 && pickups > 0);
+  assert.deepEqual([...new Set(modes.cases.map(c => c.mode))].sort(), [1, 2]);
+});
+
+test('unshielded ship contact damages rather than automatically killing a sturdy object', () => {
+  const Engine = require('../js/spaceimpact-engine.js');
+  const fixture = require('./fixtures/spaceimpact-ship-damage.json');
+  for (const sample of fixture.cases) {
+    const game = Engine.create(7);
+    game.guard = 0;
+    const object = { id: 1, cls: 5, x: 8, y: 20, w: 9, h: 5, hp: sample.before_hp, age: 0,
+      vm: 6, speed: 0, y0: 20, phase: 0, dir: 1, dead: 0, stop: 0, held: 0 };
+    game.objects.push(object); game.shipContact();
+    assert.equal(object.hp, sample.after_hp);
+    assert.equal(object.dead !== 0, sample.after_class === 2);
+    assert.equal(game.score, sample.score);
+    assert.equal(game.mode === 'dying', !!sample.hit);
+  }
+});
